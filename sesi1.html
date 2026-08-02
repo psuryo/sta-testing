@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sesi 1 — Konsep, Tujuan, dan Peran SDLC dalam Testing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAFAF7;
+    --paper-raised:#FFFFFF;
+    --ink:#1A1D29;
+    --ink-soft:#565B6E;
+    --rule:#E1DED4;
+    --pass:#0F6B5C;
+    --pass-bg:#E9F3EF;
+    --info:#2C5F8A;
+    --info-bg:#EAF1F7;
+    --amber:#A9761E;
+    --amber-bg:#FBF2E1;
+    --mono-bg:#1A1D29;
+    --mono-text:#D9F2E6;
+    --sidebar-w:250px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+
+  .shell{display:flex; min-height:100vh;}
+
+  /* SIDEBAR (table of contents) */
+  .sidebar{
+    width:var(--sidebar-w); flex-shrink:0;
+    background:var(--ink); color:#EDEBE0;
+    padding:32px 22px 40px;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .back-link{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'IBM Plex Mono', monospace; font-size:12px;
+    color:#8FE0C6; text-decoration:none; margin-bottom:26px;
+  }
+  .back-link:hover{text-decoration:underline;}
+  .brand-sub{
+    font-family:'IBM Plex Mono', monospace; font-size:11px;
+    color:#7C8093; margin-bottom:4px;
+  }
+  .brand-name{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:17px; color:#fff; margin-bottom:24px;
+  }
+  .nav-label{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.08em; color:#7C8093; margin-bottom:10px;
+  }
+  .toc-link{
+    display:block; font-size:13px; color:#C9C7BC; text-decoration:none;
+    padding:6px 0 6px 12px; border-left:2px solid #3A3D4A;
+    transition:all .15s;
+  }
+  .toc-link:hover{color:#fff; border-left-color:#4FE3B8;}
+  .toc-sub{padding-left:22px; font-size:12.5px;}
+
+  main{flex:1; min-width:0;}
+  .wrap{max-width:800px; margin:0 auto; padding:56px 32px 100px;}
+
+  section{margin-bottom:56px; scroll-margin-top:24px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--pass);
+    letter-spacing:.06em; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:"$"; color:var(--ink-soft);}
+  h1{
+    font-family:'Space Grotesk', sans-serif; font-size:36px; font-weight:700;
+    margin:0 0 14px; letter-spacing:-.01em; line-height:1.15;
+  }
+  h2{
+    font-family:'Space Grotesk', sans-serif; font-size:23px; font-weight:600; margin:0 0 6px;
+  }
+  h3{
+    font-family:'Space Grotesk', sans-serif; font-size:18px; font-weight:600; margin:26px 0 10px;
+  }
+  h4{font-size:15px; font-weight:600; margin:18px 0 8px;}
+  .lead{color:var(--ink-soft); font-size:16px; max-width:620px;}
+  .sec-desc{color:var(--ink-soft); font-size:14.5px; margin:0 0 20px;}
+  p{font-size:14.5px; margin:0 0 12px;}
+
+  .meta-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:20px;}
+  .meta-chip{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; background:var(--paper-raised);
+    border:1px solid var(--rule); padding:6px 12px; border-radius:100px; color:var(--ink-soft);
+  }
+
+  .card{
+    background:var(--paper-raised); border:1px solid var(--rule);
+    border-radius:12px; padding:22px 24px;
+  }
+
+  .obj-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .obj-list li{display:flex; gap:12px; align-items:flex-start; font-size:14.5px;}
+  .check{
+    flex-shrink:0; width:20px; height:20px; border-radius:5px; background:var(--pass-bg);
+    color:var(--pass); display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; margin-top:2px;
+  }
+
+  /* callouts */
+  .callout{
+    display:flex; gap:12px; align-items:flex-start; border-radius:10px;
+    padding:14px 16px; font-size:14px; margin:16px 0;
+  }
+  .callout.info{background:var(--info-bg); border:1px solid #C7DBEA; color:#1E4560;}
+  .callout.tip{background:var(--pass-bg); border:1px solid #C9E4DA; color:#0C4F44;}
+  .callout.warn{background:var(--amber-bg); border:1px solid #ECD9B0; color:#6B4A0F;}
+  .callout b{font-weight:600;}
+  .callout-icon{font-size:16px; flex-shrink:0;}
+
+  /* stage list (SDLC phases) */
+  .stage-list{list-style:none; margin:0; padding:0; display:grid; gap:0;}
+  .stage-item{
+    display:grid; grid-template-columns:34px 1fr; gap:16px;
+    padding:18px 0; border-bottom:1px solid var(--rule);
+  }
+  .stage-item:last-child{border-bottom:none;}
+  .stage-num{
+    width:34px; height:34px; border-radius:9px; background:var(--ink); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono', monospace; font-size:13px; font-weight:500; flex-shrink:0;
+  }
+  .stage-title{font-weight:600; font-size:15px; margin-bottom:4px;}
+  .stage-desc{color:var(--ink-soft); font-size:14px; margin-bottom:6px;}
+  .stage-testrole{
+    font-size:13px; color:var(--pass); background:var(--pass-bg);
+    display:inline-block; padding:4px 10px; border-radius:6px; margin-top:4px;
+  }
+
+  /* model cards */
+  .model-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:680px){.model-grid{grid-template-columns:1fr;}}
+  .model-card{border:1px solid var(--rule); border-radius:12px; padding:18px 20px; background:var(--paper-raised);}
+  .model-card h4{margin-top:0; display:flex; align-items:center; gap:8px;}
+  .model-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; padding:2px 8px;
+    border-radius:100px; background:var(--info-bg); color:var(--info); font-weight:500;
+  }
+  .pro-con{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px;}
+  .pro-con div{font-size:12.5px;}
+  .pro-con .label{
+    font-family:'IBM Plex Mono', monospace; font-size:10px; text-transform:uppercase;
+    letter-spacing:.04em; color:var(--ink-soft); margin-bottom:5px;
+  }
+  .pro-con ul{margin:0; padding-left:16px; color:var(--ink-soft);}
+  .pro-con li{margin-bottom:3px;}
+
+  /* V-model mapping */
+  .vmap{display:grid; gap:0;}
+  .vmap-row{
+    display:grid; grid-template-columns:1fr 40px 1fr; align-items:center;
+    gap:10px; padding:12px 0; border-bottom:1px dashed var(--rule);
+  }
+  .vmap-row:last-child{border-bottom:none;}
+  .vmap-left, .vmap-right{
+    font-size:13.5px; padding:10px 14px; border-radius:8px;
+  }
+  .vmap-left{background:var(--info-bg); color:#1E4560; text-align:right;}
+  .vmap-right{background:var(--pass-bg); color:#0C4F44;}
+  .vmap-arrow{
+    font-family:'IBM Plex Mono', monospace; color:var(--ink-soft); text-align:center; font-size:13px;
+  }
+  .vmap-header{
+    display:grid; grid-template-columns:1fr 40px 1fr; gap:10px;
+    font-family:'IBM Plex Mono', monospace; font-size:11px; text-transform:uppercase;
+    letter-spacing:.04em; color:var(--ink-soft); padding-bottom:10px; margin-bottom:6px;
+    border-bottom:1px solid var(--rule);
+  }
+  .vmap-header span:first-child{text-align:right;}
+  .vmap-header span:last-child{text-align:left;}
+
+  /* verif vs valid */
+  .vv-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:680px){.vv-grid{grid-template-columns:1fr;}}
+  .vv-card{border-radius:12px; padding:20px 22px;}
+  .vv-card.verif{background:var(--info-bg); border:1px solid #C7DBEA;}
+  .vv-card.valid{background:var(--pass-bg); border:1px solid #C9E4DA;}
+  .vv-card h4{margin-top:0;}
+  .vv-question{
+    font-family:'IBM Plex Mono', monospace; font-size:13px; font-style:italic;
+    margin-bottom:10px; padding:10px 12px; background:rgba(255,255,255,.5); border-radius:7px;
+  }
+  .vv-card ul{margin:8px 0 0; padding-left:18px; font-size:13.5px;}
+  .vv-card li{margin-bottom:5px;}
+
+  /* tester roles */
+  .role-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;}
+  @media (max-width:680px){.role-grid{grid-template-columns:1fr;}}
+  .role-card{border:1px solid var(--rule); border-radius:10px; padding:16px 18px; background:var(--paper-raised);}
+  .role-card .level{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--pass); margin-bottom:6px;
+  }
+  .role-card h4{margin:0 0 6px; font-size:14px;}
+  .role-card p{font-size:12.5px; color:var(--ink-soft); margin:0;}
+
+  /* case study */
+  .case-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:680px){.case-grid{grid-template-columns:1fr;}}
+  .case-card{border:1px solid var(--rule); border-radius:12px; padding:20px 22px; background:var(--paper-raised);}
+  .case-card .case-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--info);
+    background:var(--info-bg); display:inline-block; padding:3px 9px; border-radius:100px; margin-bottom:10px;
+  }
+  .case-card p{font-size:13.5px; color:var(--ink-soft); margin-bottom:8px;}
+  .case-card .prompt-q{font-size:13.5px; color:var(--ink); font-weight:500; margin-top:12px;}
+
+  /* quiz */
+  details{
+    border:1px solid var(--rule); border-radius:10px; padding:14px 18px; margin-bottom:10px; background:var(--paper-raised);
+  }
+  summary{
+    cursor:pointer; font-size:14.5px; font-weight:500; list-style:none;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"+"; color:var(--pass); font-family:'IBM Plex Mono', monospace; font-size:16px;}
+  details[open] summary::after{content:"–";}
+  details[open] summary{margin-bottom:10px;}
+  .answer{font-size:13.5px; color:var(--ink-soft); border-top:1px solid var(--rule); padding-top:10px;}
+  .answer b{color:var(--pass);}
+
+  /* task */
+  .task-card{background:var(--ink); color:#F2F1EA; border-radius:12px; padding:26px 28px;}
+  .task-card h3{color:#fff; margin-top:0;}
+  .task-card p{color:#D8D6CC; font-size:14px;}
+  .rubric-table{width:100%; border-collapse:collapse; margin-top:14px; font-size:13px;}
+  .rubric-table th, .rubric-table td{
+    border:1px solid rgba(255,255,255,.15); padding:9px 12px; text-align:left; color:#D8D6CC;
+  }
+  .rubric-table th{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:#8FE0C6;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .deadline-tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:12px;
+    background:rgba(255,255,255,.1); padding:5px 10px; border-radius:100px; color:#F2F1EA; margin-top:16px;
+  }
+
+  .ref-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .ref-list li{font-size:13.5px; color:var(--ink-soft); padding-left:18px; position:relative;}
+  .ref-list li::before{content:"—"; position:absolute; left:0; color:var(--pass);}
+  .ref-list b{color:var(--ink);}
+
+  .summary-list{list-style:none; margin:0; padding:0; display:grid; gap:8px;}
+  .summary-list li{
+    display:flex; gap:10px; align-items:flex-start; font-size:14px;
+    background:var(--pass-bg); padding:10px 14px; border-radius:8px; color:#0C4F44;
+  }
+
+  footer{
+    border-top:1px solid var(--rule); padding-top:24px; margin-top:20px;
+    color:var(--ink-soft); font-size:13px; display:flex; justify-content:space-between;
+    flex-wrap:wrap; gap:8px;
+  }
+  .nav-next{
+    display:flex; justify-content:space-between; align-items:center; gap:16px;
+    border:1px solid var(--rule); border-radius:12px; padding:18px 22px; margin-top:40px;
+  }
+  .nav-next a{text-decoration:none; font-size:13.5px; color:var(--ink-soft);}
+  .nav-next .to-index{color:var(--pass); font-weight:500;}
+
+  @media (max-width:860px){
+    .sidebar{display:none;}
+    .wrap{padding:40px 20px 80px;}
+    h1{font-size:28px;}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <nav class="sidebar">
+    <a class="back-link" href="index.html">← Kembali ke Beranda</a>
+    <div class="brand-sub">software-testing / sesi-01</div>
+    <div class="brand-name">SDLC &amp; Peran Testing</div>
+
+    <div class="nav-label">Isi Halaman</div>
+    <a class="toc-link" href="#pendahuluan">Pendahuluan</a>
+    <a class="toc-link" href="#tujuan">Tujuan Pembelajaran</a>
+    <a class="toc-link" href="#definisi">1.1 Definisi &amp; Tahapan SDLC</a>
+    <a class="toc-link" href="#model">1.2 Model-model SDLC</a>
+    <a class="toc-link" href="#posisi">1.3 Posisi Testing per Model</a>
+    <a class="toc-link" href="#verval">1.4 Verifikasi vs Validasi</a>
+    <a class="toc-link" href="#peran">1.5 Peran Tester</a>
+    <a class="toc-link" href="#studikasus">Studi Kasus Diskusi</a>
+    <a class="toc-link" href="#rangkuman">Rangkuman</a>
+    <a class="toc-link" href="#latihan">Latihan Pemahaman</a>
+    <a class="toc-link" href="#tugas">Tugas Sesi 1</a>
+    <a class="toc-link" href="#referensi">Referensi</a>
+  </nav>
+
+  <main>
+    <div class="wrap">
+
+      <section id="pendahuluan">
+        <div class="eyebrow">sesi-01 / 14</div>
+        <h1>Konsep, Tujuan, dan Peran SDLC dalam Testing</h1>
+        <p class="lead">Sebelum masuk ke teknik-teknik pengujian, mahasiswa perlu memahami di mana sebenarnya posisi testing dalam keseluruhan proses membangun perangkat lunak — dan mengapa testing yang dilakukan terlalu belakangan selalu menjadi lebih mahal.</p>
+        <div class="meta-row">
+          <span class="meta-chip">⏱ 50 menit</span>
+          <span class="meta-chip">🎯 CPMK-1</span>
+          <span class="meta-chip">📖 3 referensi utama</span>
+        </div>
+      </section>
+
+      <section id="tujuan">
+        <h2>Tujuan Pembelajaran</h2>
+        <p class="sec-desc">Setelah mengikuti sesi ini, mahasiswa mampu:</p>
+        <div class="card">
+          <ul class="obj-list">
+            <li><span class="check">✓</span> Menjelaskan definisi SDLC dan menguraikan tahapan-tahapannya secara berurutan.</li>
+            <li><span class="check">✓</span> Membandingkan model Waterfall, V-Model, Iterative, dan Agile dari sudut pandang aktivitas testing.</li>
+            <li><span class="check">✓</span> Memetakan level testing (unit, integration, system, acceptance) terhadap tahap development yang bersesuaian menggunakan V-Model.</li>
+            <li><span class="check">✓</span> Membedakan secara tegas antara verifikasi dan validasi, lengkap dengan contoh kasus masing-masing.</li>
+            <li><span class="check">✓</span> Menguraikan tanggung jawab dan posisi seorang tester dalam tim pengembangan perangkat lunak, termasuk prinsip independensi.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="definisi">
+        <div class="eyebrow">1.1</div>
+        <h2>Definisi dan Tahapan SDLC</h2>
+        <p><b>Software Development Life Cycle (SDLC)</b> adalah kerangka kerja terstruktur yang menggambarkan tahapan-tahapan dalam membangun perangkat lunak, mulai dari ide awal hingga perangkat lunak tersebut dipensiunkan. SDLC memberi tim pengembangan sebuah peta bersama — tanpa peta ini, setiap anggota tim bisa punya asumsi berbeda tentang "apa yang sedang kita kerjakan sekarang" dan "apa langkah selanjutnya".</p>
+
+        <div class="callout info">
+          <span class="callout-icon">💡</span>
+          <span>Testing sering disalahpahami sebagai "tahap terakhir sebelum rilis". Sesi ini akan menunjukkan bahwa pemahaman itu keliru — testing seharusnya hadir di <b>setiap</b> tahap SDLC, bukan hanya di ujung.</span>
+        </div>
+
+        <h3>Enam Tahapan Umum SDLC</h3>
+        <div class="card">
+          <ul class="stage-list">
+            <li class="stage-item">
+              <span class="stage-num">1</span>
+              <div>
+                <div class="stage-title">Requirement Analysis (Analisis Kebutuhan)</div>
+                <div class="stage-desc">Tim mengumpulkan dan mendokumentasikan apa yang dibutuhkan pengguna dan bisnis. Output-nya berupa dokumen requirement (fungsional dan non-fungsional).</div>
+                <span class="stage-testrole">Testing: review requirement — apakah kebutuhan bisa diuji (testable)?</span>
+              </div>
+            </li>
+            <li class="stage-item">
+              <span class="stage-num">2</span>
+              <div>
+                <div class="stage-title">Design</div>
+                <div class="stage-desc">Requirement diterjemahkan menjadi rancangan arsitektur sistem dan rancangan detail tiap modul/komponen.</div>
+                <span class="stage-testrole">Testing: menyusun test plan dan merancang test case awal berdasarkan desain.</span>
+              </div>
+            </li>
+            <li class="stage-item">
+              <span class="stage-num">3</span>
+              <div>
+                <div class="stage-title">Implementation (Coding)</div>
+                <div class="stage-desc">Developer menulis kode program berdasarkan rancangan yang telah disepakati.</div>
+                <span class="stage-testrole">Testing: unit testing dilakukan paralel oleh developer saat kode ditulis.</span>
+              </div>
+            </li>
+            <li class="stage-item">
+              <span class="stage-num">4</span>
+              <div>
+                <div class="stage-title">Testing</div>
+                <div class="stage-desc">Modul-modul yang sudah jadi diintegrasikan dan diuji secara menyeluruh — integration testing, system testing, hingga acceptance testing.</div>
+                <span class="stage-testrole">Testing: fase paling intensif, namun bukan satu-satunya fase testing berlangsung.</span>
+              </div>
+            </li>
+            <li class="stage-item">
+              <span class="stage-num">5</span>
+              <div>
+                <div class="stage-title">Deployment</div>
+                <div class="stage-desc">Perangkat lunak dirilis ke lingkungan produksi agar bisa digunakan pengguna akhir.</div>
+                <span class="stage-testrole">Testing: smoke testing dan deployment verification di lingkungan produksi.</span>
+              </div>
+            </li>
+            <li class="stage-item">
+              <span class="stage-num">6</span>
+              <div>
+                <div class="stage-title">Maintenance</div>
+                <div class="stage-desc">Perangkat lunak dipelihara: perbaikan bug, penyesuaian terhadap perubahan lingkungan, atau penambahan fitur kecil.</div>
+                <span class="stage-testrole">Testing: regression testing untuk memastikan perubahan tidak merusak fungsi yang sudah berjalan.</span>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="callout tip">
+          <span class="callout-icon">✓</span>
+          <span><b>Poin kunci:</b> perhatikan bahwa setiap tahap punya "jejak testing"-nya sendiri. Ini adalah gagasan inti yang akan terus dipakai sepanjang mata kuliah ini: testing bukan satu fase, melainkan aktivitas yang menyertai seluruh siklus.</span>
+        </div>
+      </section>
+
+      <section id="model">
+        <div class="eyebrow">1.2</div>
+        <h2>Model-model SDLC</h2>
+        <p>Tahapan di atas bisa diorganisasikan dalam berbagai <b>model</b> atau pendekatan proses. Pemilihan model memengaruhi kapan dan bagaimana testing dilakukan.</p>
+
+        <div class="model-grid">
+          <div class="model-card">
+            <h4>Waterfall <span class="model-tag">sekuensial</span></h4>
+            <p style="font-size:13px; color:var(--ink-soft);">Setiap tahap harus selesai 100% sebelum tahap berikutnya dimulai. Testing berada di ujung, setelah seluruh kode selesai ditulis.</p>
+            <div class="pro-con">
+              <div><div class="label">Cocok untuk</div><ul><li>Requirement stabil &amp; jelas</li><li>Proyek regulasi ketat</li></ul></div>
+              <div><div class="label">Risiko</div><ul><li>Bug ditemukan telat</li><li>Biaya perbaikan mahal</li></ul></div>
+            </div>
+          </div>
+
+          <div class="model-card">
+            <h4>V-Model <span class="model-tag">sekuensial+verifikasi</span></h4>
+            <p style="font-size:13px; color:var(--ink-soft);">Pengembangan Waterfall yang menekankan hubungan langsung: setiap tahap development punya tahap testing pasangannya, direncanakan sejak awal.</p>
+            <div class="pro-con">
+              <div><div class="label">Cocok untuk</div><ul><li>Proyek kritikal (medis, finansial)</li><li>Kebutuhan traceability tinggi</li></ul></div>
+              <div><div class="label">Risiko</div><ul><li>Kaku terhadap perubahan</li><li>Testing baru "terlihat hasilnya" belakangan</li></ul></div>
+            </div>
+          </div>
+
+          <div class="model-card">
+            <h4>Iterative <span class="model-tag">bertahap</span></h4>
+            <p style="font-size:13px; color:var(--ink-soft);">Sistem dibangun dalam beberapa iterasi/putaran kecil, tiap putaran menghasilkan versi yang makin lengkap. Testing dilakukan di setiap iterasi.</p>
+            <div class="pro-con">
+              <div><div class="label">Cocok untuk</div><ul><li>Requirement berkembang bertahap</li><li>Butuh feedback awal</li></ul></div>
+              <div><div class="label">Risiko</div><ul><li>Perlu perencanaan integrasi antar iterasi</li></ul></div>
+            </div>
+          </div>
+
+          <div class="model-card">
+            <h4>Agile <span class="model-tag">adaptif</span></h4>
+            <p style="font-size:13px; color:var(--ink-soft);">Pengembangan dalam sprint pendek (1–4 minggu), testing menyatu erat dengan development — sering disebut "continuous testing".</p>
+            <div class="pro-con">
+              <div><div class="label">Cocok untuk</div><ul><li>Requirement dinamis</li><li>Startup &amp; produk digital</li></ul></div>
+              <div><div class="label">Risiko</div><ul><li>Dokumentasi testing formal minim</li><li>Butuh automation kuat</li></ul></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="posisi">
+        <div class="eyebrow">1.3</div>
+        <h2>Posisi Testing dalam Setiap Model — Fokus V-Model</h2>
+        <p>V-Model adalah model yang paling eksplisit dalam memetakan hubungan antara tahap development dan level testing. Setiap sisi kiri (development) memiliki pasangan langsung di sisi kanan (testing) yang <b>direncanakan sejak tahap kiri berlangsung</b> — bukan setelah coding selesai.</p>
+
+        <div class="card">
+          <div class="vmap-header"><span>Tahap Pengembangan (Kiri)</span><span></span><span>Level Testing Terkait (Kanan)</span></div>
+          <div class="vmap">
+            <div class="vmap-row">
+              <div class="vmap-left">Business Requirement Analysis</div>
+              <div class="vmap-arrow">→</div>
+              <div class="vmap-right">Acceptance Testing</div>
+            </div>
+            <div class="vmap-row">
+              <div class="vmap-left">System Design (Arsitektur)</div>
+              <div class="vmap-arrow">→</div>
+              <div class="vmap-right">System Testing</div>
+            </div>
+            <div class="vmap-row">
+              <div class="vmap-left">High-Level / Architecture Design</div>
+              <div class="vmap-arrow">→</div>
+              <div class="vmap-right">Integration Testing</div>
+            </div>
+            <div class="vmap-row">
+              <div class="vmap-left">Detailed / Module Design</div>
+              <div class="vmap-arrow">→</div>
+              <div class="vmap-right">Unit Testing</div>
+            </div>
+            <div class="vmap-row">
+              <div class="vmap-left">Coding / Implementation</div>
+              <div class="vmap-arrow">↓ ↑</div>
+              <div class="vmap-right">Titik balik "V" — dari membangun ke menguji</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span><b>Kesalahan umum mahasiswa:</b> mengira V-Model berarti "testing dilakukan setelah semua development selesai", padahal justru sebaliknya — <i>rencana</i> dan <i>rancangan test case</i> untuk tiap level dibuat <b>bersamaan</b> dengan tahap development pasangannya. Yang terjadi belakangan hanyalah <i>eksekusi</i> testing-nya.</span>
+        </div>
+
+        <h4>Perbandingan Posisi Testing Antar Model</h4>
+        <p style="font-size:13.5px; color:var(--ink-soft);">Pada <b>Waterfall</b> murni, testing baru dimulai setelah 100% coding selesai — risiko bug ditemukan sangat terlambat. Pada <b>V-Model</b>, rancangan testing disiapkan sejak awal meski eksekusinya tetap di akhir. Pada <b>Iterative</b> dan <b>Agile</b>, testing terjadi berulang kali di setiap iterasi/sprint — bug ditemukan jauh lebih cepat, tapi menuntut proses testing yang efisien dan sering kali otomatis.</p>
+      </section>
+
+      <section id="verval">
+        <div class="eyebrow">1.4</div>
+        <h2>Verifikasi vs Validasi</h2>
+        <p>Dua istilah ini sering tertukar padahal maknanya berbeda secara mendasar — dan perbedaan ini sering muncul sebagai soal ujian.</p>
+
+        <div class="vv-grid">
+          <div class="vv-card verif">
+            <h4>Verifikasi</h4>
+            <div class="vv-question">"Are we building the product right?"</div>
+            <p style="font-size:13.5px; margin:0;">Memastikan produk dibangun <b>sesuai spesifikasi/desain</b> yang telah disepakati. Dilakukan tanpa menjalankan program — melalui review, walkthrough, inspection.</p>
+            <ul>
+              <li>Review dokumen requirement</li>
+              <li>Code review / code walkthrough</li>
+              <li>Inspeksi desain arsitektur</li>
+            </ul>
+          </div>
+          <div class="vv-card valid">
+            <h4>Validasi</h4>
+            <div class="vv-question">"Are we building the right product?"</div>
+            <p style="font-size:13.5px; margin:0;">Memastikan produk yang jadi benar-benar <b>memenuhi kebutuhan pengguna</b>. Dilakukan dengan menjalankan program secara aktual.</p>
+            <ul>
+              <li>Unit testing, integration testing</li>
+              <li>System testing, acceptance testing</li>
+              <li>User Acceptance Testing (UAT) bersama klien</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout tip" style="margin-top:16px;">
+          <span class="callout-icon">✓</span>
+          <span><b>Contoh mudah diingat:</b> sebuah aplikasi kasir dibangun 100% sesuai dokumen desain (verifikasi berhasil), tapi ternyata pengguna toko justru butuh fitur diskon bertingkat yang tidak pernah ditanyakan saat requirement (validasi gagal). Produk "benar secara teknis" belum tentu "benar secara kebutuhan".</span>
+        </div>
+      </section>
+
+      <section id="peran">
+        <div class="eyebrow">1.5</div>
+        <h2>Peran Tester dalam Tim Pengembangan</h2>
+        <p>Seorang tester bukan sekadar "orang yang mencoba-coba aplikasi sampai error". Tester memiliki tanggung jawab yang terstruktur dan prinsip kerja yang menjaga kualitas pengujian tetap objektif.</p>
+
+        <h4>Tanggung Jawab Utama</h4>
+        <div class="card">
+          <ul class="obj-list">
+            <li><span class="check">1</span> Merancang test plan, test scenario, dan test case berdasarkan requirement/desain.</li>
+            <li><span class="check">2</span> Mengeksekusi pengujian (manual maupun otomatis) dan mendokumentasikan hasilnya.</li>
+            <li><span class="check">3</span> Melaporkan defect secara jelas dan dapat direproduksi oleh developer.</li>
+            <li><span class="check">4</span> Melakukan regression testing setiap ada perubahan kode.</li>
+            <li><span class="check">5</span> Berkolaborasi dengan developer, product owner, dan business analyst untuk memastikan pemahaman requirement selaras.</li>
+          </ul>
+        </div>
+
+        <h4>Prinsip Independensi Tester</h4>
+        <div class="callout info">
+          <span class="callout-icon">🔍</span>
+          <span>Developer cenderung punya "titik buta" terhadap kode yang mereka tulis sendiri — mereka menguji sesuai asumsi yang sama saat menulis kode. Karena itu, banyak organisasi memisahkan peran tester (atau minimal mewajibkan peer testing) agar pengujian dilakukan dengan sudut pandang yang lebih objektif dan independen.</span>
+        </div>
+
+        <h4>Jenjang Peran QA/Tester di Industri</h4>
+        <div class="role-grid">
+          <div class="role-card">
+            <div class="level">JUNIOR</div>
+            <h4>QA Tester</h4>
+            <p>Eksekusi test case, laporan bug, testing manual dasar.</p>
+          </div>
+          <div class="role-card">
+            <div class="level">MENENGAH</div>
+            <h4>Test Analyst / Automation Engineer</h4>
+            <p>Merancang test case kompleks, membangun automation script.</p>
+          </div>
+          <div class="role-card">
+            <div class="level">SENIOR</div>
+            <h4>QA Lead / Test Architect</h4>
+            <p>Menyusun strategi testing, memilih tools, memimpin tim QA.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="studikasus">
+        <h2>Studi Kasus Diskusi Kelas</h2>
+        <p class="sec-desc">Diskusi kelompok kecil (4–5 orang). Setiap kelompok mendapat satu kasus, mendiskusikan selama 10 menit, lalu mempresentasikan pilihan model SDLC beserta alasannya dalam 2 menit.</p>
+
+        <div class="case-grid">
+          <div class="case-card">
+            <span class="case-tag">Kasus A</span>
+            <h4 style="margin-top:0;">Sistem Informasi Kependudukan Pemerintah Daerah</h4>
+            <p>Proyek berskala besar dengan requirement yang sudah diatur regulasi pemerintah, melibatkan banyak instansi, dan berjalan selama 18 bulan dengan anggaran tetap.</p>
+            <p class="prompt-q">Model SDLC apa yang paling sesuai? Bagaimana strategi testing-nya?</p>
+          </div>
+          <div class="case-card">
+            <span class="case-tag">Kasus B</span>
+            <h4 style="margin-top:0;">Aplikasi Mobile Startup Marketplace Lokal</h4>
+            <p>Tim kecil (5 orang), requirement masih berubah-ubah mengikuti masukan pengguna awal, target rilis MVP dalam 6 minggu.</p>
+            <p class="prompt-q">Model SDLC apa yang paling sesuai? Bagaimana strategi testing-nya?</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="rangkuman">
+        <h2>Rangkuman</h2>
+        <ul class="summary-list">
+          <li><span>✓</span> SDLC terdiri dari 6 tahap: requirement, design, implementation, testing, deployment, maintenance — dan testing punya jejak di setiap tahap, bukan hanya di satu fase.</li>
+          <li><span>✓</span> Model SDLC (Waterfall, V-Model, Iterative, Agile) menentukan <i>kapan</i> dan <i>seberapa sering</i> testing dilakukan.</li>
+          <li><span>✓</span> V-Model memetakan setiap level testing langsung ke tahap development pasangannya — direncanakan sejak awal, dieksekusi belakangan.</li>
+          <li><span>✓</span> Verifikasi = "membangun dengan benar sesuai spesifikasi"; Validasi = "membangun hal yang benar sesuai kebutuhan pengguna".</li>
+          <li><span>✓</span> Tester bertanggung jawab merancang, mengeksekusi, dan melaporkan hasil pengujian secara independen dan objektif.</li>
+        </ul>
+      </section>
+
+      <section id="latihan">
+        <h2>Latihan Pemahaman Mandiri</h2>
+        <p class="sec-desc">Klik tiap soal untuk melihat kunci jawaban dan penjelasannya.</p>
+
+        <details>
+          <summary>1. Mengapa unit testing pada V-Model dipasangkan dengan tahap Detailed/Module Design, bukan dengan tahap Coding?</summary>
+          <div class="answer"><b>Jawaban:</b> Karena yang dipasangkan pada V-Model adalah tahap <i>perencanaan/desain</i>-nya, bukan eksekusi coding-nya. Rancangan unit test case sudah bisa disusun begitu detailed design selesai — sebelum baris kode pertama ditulis — sehingga developer bisa langsung menguji begitu modul selesai dikoding.</div>
+        </details>
+
+        <details>
+          <summary>2. Sebuah tim menemukan bahwa aplikasi mereka berjalan sesuai seluruh dokumen desain, namun pengguna tetap mengeluh aplikasi "tidak sesuai kebutuhan". Apakah ini kegagalan verifikasi atau validasi?</summary>
+          <div class="answer"><b>Jawaban:</b> Ini adalah kegagalan <b>validasi</b>. Verifikasi berhasil (produk sesuai spesifikasi teknis), tetapi validasi gagal karena spesifikasi itu sendiri ternyata tidak mencerminkan kebutuhan pengguna yang sebenarnya.</div>
+        </details>
+
+        <details>
+          <summary>3. Mengapa prinsip independensi tester penting dalam proses testing?</summary>
+          <div class="answer"><b>Jawaban:</b> Karena developer cenderung menguji berdasarkan asumsi yang sama dengan saat mereka menulis kode, sehingga rawan melewatkan skenario yang berada di luar asumsi tersebut. Independensi memberi sudut pandang objektif yang lebih mungkin menemukan defect yang terlewat oleh pembuat kode.</div>
+        </details>
+
+        <details>
+          <summary>4. Model SDLC apa yang paling tepat untuk proyek dengan requirement yang sering berubah dan butuh rilis cepat?</summary>
+          <div class="answer"><b>Jawaban:</b> Agile — karena pengembangan dalam sprint pendek memungkinkan penyesuaian requirement antar sprint, dengan testing yang menyatu erat (continuous testing) di setiap siklusnya.</div>
+        </details>
+      </section>
+
+      <section id="tugas">
+        <h2>Tugas Sesi 1</h2>
+        <div class="task-card">
+          <h3>Esai Analisis Perbandingan Model SDLC</h3>
+          <p>Bandingkan peran testing pada dua model SDLC yang berbeda (Waterfall vs Agile) menggunakan studi kasus proyek nyata atau proyek fiktif yang realistis. Esai maksimal 2 halaman (font 11–12pt, spasi 1.15), mencakup:</p>
+          <p style="color:#F2F1EA;">(1) Ringkasan proyek yang dipilih<br>(2) Alasan pemilihan model SDLC untuk proyek tersebut<br>(3) Bagaimana aktivitas testing terintegrasi dalam model tersebut, lengkap dengan level testing yang relevan</p>
+
+          <table class="rubric-table">
+            <tr><th>Kriteria</th><th>Bobot</th></tr>
+            <tr><td>Ketepatan pemilihan &amp; alasan model SDLC</td><td>30%</td></tr>
+            <tr><td>Kedalaman analisis integrasi testing</td><td>40%</td></tr>
+            <tr><td>Kejelasan struktur &amp; penulisan</td><td>20%</td></tr>
+            <tr><td>Ketepatan penggunaan istilah teknis</td><td>10%</td></tr>
+          </table>
+
+          <span class="deadline-tag">⏳ Dikumpulkan sebelum Sesi 2 dimulai</span>
+        </div>
+      </section>
+
+      <section id="referensi">
+        <h2>Referensi Sesi Ini</h2>
+        <div class="card">
+          <ul class="ref-list">
+            <li><b>Pressman, R.S.</b> — Software Engineering: A Practitioner's Approach, bab mengenai proses dan model pengembangan perangkat lunak.</li>
+            <li><b>Black, R., Graham, D., van Veenendaal, E.</b> — Foundations of Software Testing: ISTQB Certification, Bab 1: Fundamentals of Testing.</li>
+            <li><b>Jorgensen, P.C.</b> — Software Testing: A Craftsman's Approach, bagian pengantar mengenai testing dalam siklus pengembangan.</li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="nav-next">
+        <a href="index.html">← Kembali ke Silabus</a>
+        <a class="to-index" href="index.html#silabus">Sesi 2: Manajemen Kualitas Perangkat Lunak →</a>
+      </div>
+
+      <footer>
+        <span>Mata Kuliah Software Testing · 3 SKS</span>
+        <span>Dosen Pengampu: Philipus Suryo Subandoro</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>
