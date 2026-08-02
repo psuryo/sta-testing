@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Software Testing — Panduan Perkuliahan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAFAF7;
+    --paper-raised:#FFFFFF;
+    --ink:#1A1D29;
+    --ink-soft:#565B6E;
+    --rule:#E1DED4;
+    --pass:#0F6B5C;
+    --pass-bg:#E9F3EF;
+    --info:#2C5F8A;
+    --info-bg:#EAF1F7;
+    --mono-bg:#1A1D29;
+    --mono-text:#D9F2E6;
+    --sidebar-w:280px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+
+  /* LAYOUT */
+  .shell{display:flex; min-height:100vh;}
+
+  /* SIDEBAR */
+  .sidebar{
+    width:var(--sidebar-w);
+    flex-shrink:0;
+    background:var(--ink);
+    color:#EDEBE0;
+    padding:32px 24px 40px;
+    position:sticky;
+    top:0;
+    height:100vh;
+    overflow-y:auto;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:6px;
+  }
+  .brand-mark{
+    width:32px; height:32px;
+    border-radius:8px;
+    background:var(--pass);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:600;
+    font-size:14px;
+    color:#fff;
+    flex-shrink:0;
+  }
+  .brand-name{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:16.5px;
+    color:#fff;
+    letter-spacing:-.01em;
+  }
+  .brand-sub{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:#8FE0C6;
+    margin:2px 0 28px;
+    padding-left:42px;
+  }
+
+  .nav-group{margin-bottom:26px;}
+  .nav-label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:#7C8093;
+    margin-bottom:10px;
+  }
+  .nav-link{
+    display:block;
+    font-size:13.5px;
+    color:#C9C7BC;
+    text-decoration:none;
+    padding:7px 0;
+    border-left:2px solid transparent;
+    padding-left:10px;
+    margin-left:-10px;
+    transition:color .15s;
+  }
+  .nav-link:hover{color:#fff;}
+
+  .session-list{list-style:none; margin:0; padding:0; display:grid; gap:2px;}
+  .session-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 10px;
+    border-radius:7px;
+    font-size:13px;
+    text-decoration:none;
+    color:#9A9C8E;
+  }
+  .session-item.active{
+    background:rgba(15,107,92,.35);
+    color:#fff;
+    font-weight:500;
+  }
+  .session-item .dot{
+    width:6px; height:6px;
+    border-radius:50%;
+    background:#585B62;
+    flex-shrink:0;
+  }
+  .session-item.active .dot{background:#4FE3B8;}
+  .session-item .num{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:inherit;
+    opacity:.7;
+    width:16px;
+  }
+  .session-item.exam{color:#D8A657;}
+  .session-item.exam .dot{background:#D8A657;}
+
+  /* MAIN */
+  main{flex:1; min-width:0;}
+  .wrap{max-width:820px; margin:0 auto; padding:56px 32px 100px;}
+
+  section{margin-bottom:64px; scroll-margin-top:24px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    color:var(--pass);
+    letter-spacing:.06em;
+    margin-bottom:10px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:"$"; color:var(--ink-soft);}
+  h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:40px;
+    font-weight:700;
+    margin:0 0 12px;
+    letter-spacing:-.01em;
+  }
+  h2{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:24px;
+    font-weight:600;
+    margin:0 0 6px;
+  }
+  h3{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:17px;
+    font-weight:600;
+    margin:0 0 8px;
+  }
+  .lead{color:var(--ink-soft); font-size:16px; max-width:600px;}
+  .sec-desc{color:var(--ink-soft); font-size:14.5px; margin:0 0 20px;}
+
+  .card{
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    border-radius:12px;
+    padding:24px 26px;
+  }
+
+  /* HERO META CHIPS */
+  .meta-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:22px;}
+  .meta-chip{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    background:var(--paper-raised);
+    border:1px solid var(--rule);
+    padding:6px 12px;
+    border-radius:100px;
+    color:var(--ink-soft);
+  }
+
+  /* INFO TABLE */
+  table{width:100%; border-collapse:collapse; font-size:14px;}
+  th, td{border:1px solid var(--rule); padding:11px 14px; text-align:left;}
+  th{
+    background:var(--paper);
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:500;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    width:220px;
+  }
+
+  /* SILABUS TABLE */
+  .silabus-table{font-size:13.5px;}
+  .silabus-table th{width:auto;}
+  .silabus-table td.num{
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--pass);
+    font-weight:500;
+    width:44px;
+  }
+  .row-exam td{background:var(--info-bg);}
+  .row-exam .num{color:var(--info);}
+
+  /* PENILAIAN */
+  .bar-list{display:grid; gap:14px;}
+  .bar-row{display:grid; grid-template-columns:200px 1fr 50px; align-items:center; gap:14px; font-size:14px;}
+  .bar-track{height:8px; background:var(--rule); border-radius:100px; overflow:hidden;}
+  .bar-fill{height:100%; background:var(--pass); border-radius:100px;}
+  .bar-pct{font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--ink-soft); text-align:right;}
+
+  /* SESI 1 CONTENT */
+  .obj-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .obj-list li{display:flex; gap:12px; align-items:flex-start; font-size:14.5px;}
+  .check{
+    flex-shrink:0; width:20px; height:20px; border-radius:5px;
+    background:var(--pass-bg); color:var(--pass);
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; margin-top:2px;
+  }
+
+  .topic-list{list-style:none; margin:0; padding:0; display:grid; gap:0;}
+  .topic-item{
+    display:grid; grid-template-columns:32px 1fr; gap:14px;
+    padding:16px 0; border-bottom:1px solid var(--rule);
+  }
+  .topic-item:last-child{border-bottom:none;}
+  .topic-num{
+    font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--pass);
+    font-weight:600;
+  }
+  .topic-title{font-weight:600; font-size:15px; margin-bottom:4px;}
+  .topic-desc{color:var(--ink-soft); font-size:14px;}
+
+  .task-card{
+    background:var(--ink); color:#F2F1EA; border-radius:12px; padding:26px 28px;
+  }
+  .task-card h3{color:#fff;}
+  .task-card p{color:#D8D6CC; font-size:14.5px; margin:0 0 14px;}
+  .deadline-tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:12px;
+    background:rgba(255,255,255,.1); padding:5px 10px; border-radius:100px; color:#F2F1EA;
+  }
+
+  .ref-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .ref-list li{
+    font-size:14px; color:var(--ink-soft); padding-left:18px; position:relative;
+  }
+  .ref-list li::before{
+    content:"—"; position:absolute; left:0; color:var(--pass);
+  }
+  .ref-list b{color:var(--ink);}
+
+  footer{
+    border-top:1px solid var(--rule); padding-top:24px; margin-top:20px;
+    color:var(--ink-soft); font-size:13px;
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+
+  @media (max-width:860px){
+    .sidebar{display:none;}
+    .wrap{padding:40px 20px 80px;}
+    h1{font-size:30px;}
+    .bar-row{grid-template-columns:130px 1fr 40px;}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">ST</div>
+      <div class="brand-name">Software Testing</div>
+    </div>
+    <div class="brand-sub">panduan-perkuliahan</div>
+
+    <div class="nav-group">
+      <div class="nav-label">Menu</div>
+      <a class="nav-link" href="#beranda">Beranda</a>
+      <a class="nav-link" href="#info">Informasi Mata Kuliah</a>
+      <a class="nav-link" href="#silabus">Silabus</a>
+      <a class="nav-link" href="#penilaian">Komponen Penilaian</a>
+      <a class="nav-link" href="#referensi">Referensi</a>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Daftar Sesi</div>
+      <ul class="session-list">
+        <li><a class="session-item active" href="sesi1.html"><span class="dot"></span><span class="num">01</span> SDLC &amp; Peran Testing</a></li>
+        <li><a class="session-item" href="#silabus"><span class="dot"></span><span class="num">02</span> Manajemen Kualitas PL</a></li>
+        <li><a class="session-item" href="#silabus"><span class="dot"></span><span class="num">03</span> Jenis-jenis Testing</a></li>
+        <li><a class="session-item" href="#silabus"><span class="dot"></span><span class="num">04</span> Test Levels &amp; Maintenance</a></li>
+        <li><a class="session-item" href="#silabus"><span class="dot"></span><span class="num">05</span> Black-Box Testing</a></li>
+        <li><a class="session-item" href="#silabus"><span class="dot"></span><span class="num">06</span> White-Box Testing</a></li>
+        <li><a class="session-item" href="#silabus"><span class="dot"></span><span class="num">07</span> Test Planning &amp; Dokumentasi</a></li>
+        <li><a class="session-item exam" href="#silabus"><span class="dot"></span><span class="num">—</span> UTS</a></li>
+        <li><a class="session-item" href="#silabus"><span class="dot"></span><span class="num">09</span> Unit Testing — JUnit</a></li>
+        <li><a class="session-item" href="#silabus"><span class="dot"></span><span class="num">10</span> Unit Testing — PyTest</a></li>
+        <li><a class="session-item" href="#silabus"><span class="dot"></span><span class="num">11</span> Procedural &amp; OO Testing</a></li>
+        <li><a class="session-item" href="#silabus"><span class="dot"></span><span class="num">12</span> Automated Testing</a></li>
+        <li><a class="session-item" href="#silabus"><span class="dot"></span><span class="num">13</span> Performance Testing</a></li>
+        <li><a class="session-item" href="#silabus"><span class="dot"></span><span class="num">14</span> Defect Mgmt &amp; Review</a></li>
+        <li><a class="session-item exam" href="#silabus"><span class="dot"></span><span class="num">—</span> UAS</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    <div class="wrap">
+
+      <section id="beranda">
+        <div class="eyebrow">selamat-datang</div>
+        <h1>Software Testing</h1>
+        <p class="lead">Panduan perkuliahan online. Halaman ini berisi silabus lengkap, informasi mata kuliah, komponen penilaian, dan materi tiap sesi — dimulai dari Sesi 1.</p>
+        <div class="meta-row">
+          <span class="meta-chip">📘 3 SKS</span>
+          <span class="meta-chip">🗓 14 Sesi + UTS + UAS</span>
+          <span class="meta-chip">👤 Philipus Suryo Subandoro</span>
+        </div>
+      </section>
+
+      <section id="info">
+        <h2>Informasi Mata Kuliah</h2>
+        <p class="sec-desc">Data umum mata kuliah untuk satu semester berjalan.</p>
+        <div class="card">
+          <table>
+            <tr><th>Nama Mata Kuliah</th><td>Software Testing</td></tr>
+            <tr><th>Bobot SKS</th><td>3 SKS (durasi 50 menit / sesi)</td></tr>
+            <tr><th>Jumlah Pertemuan</th><td>14 sesi materi + 1 sesi UTS + 1 sesi UAS = 16 pertemuan</td></tr>
+            <tr><th>Dosen Pengampu</th><td>Philipus Suryo Subandoro</td></tr>
+            <tr><th>Sifat Mata Kuliah</th><td>Wajib Program Studi</td></tr>
+            <tr><th>Metode Perkuliahan</th><td>Ceramah, diskusi, studi kasus, dan latihan/demo tools di kelas</td></tr>
+          </table>
+        </div>
+      </section>
+
+      <section id="silabus">
+        <h2>Silabus</h2>
+        <p class="sec-desc">Rincian topik untuk seluruh 16 pertemuan dalam satu semester.</p>
+        <div class="card">
+          <table class="silabus-table">
+            <tr><th style="width:44px">Sesi</th><th>Pokok Bahasan</th></tr>
+            <tr><td class="num">01</td><td><a href="sesi1.html" style="color:var(--pass); text-decoration:none; font-weight:500;">Konsep, tujuan, dan peran SDLC (Software Development Life Cycle) dalam testing →</a></td></tr>
+            <tr><td class="num">02</td><td>Manajemen Kualitas Perangkat Lunak</td></tr>
+            <tr><td class="num">03</td><td>Jenis-jenis Testing (Functional, Non-Functional, Manual, Otomatis)</td></tr>
+            <tr><td class="num">04</td><td>Test Levels dan Maintenance Testing</td></tr>
+            <tr><td class="num">05</td><td>Black-Box Testing: Equivalence Partitioning, Boundary Value Analysis</td></tr>
+            <tr><td class="num">06</td><td>White-Box Testing: Statement, Branch, Path Coverage</td></tr>
+            <tr><td class="num">07</td><td>Test Planning &amp; Dokumentasi (Test Plan, Test Scenario, Test Case)</td></tr>
+            <tr class="row-exam"><td class="num">—</td><td><b>Ujian Tengah Semester (UTS)</b> — mencakup materi sesi 1–7</td></tr>
+            <tr><td class="num">09</td><td>Unit Testing (Tools: JUnit)</td></tr>
+            <tr><td class="num">10</td><td>Unit Testing (Tools: PyTest)</td></tr>
+            <tr><td class="num">11</td><td>Procedural Testing &amp; Object Oriented Testing</td></tr>
+            <tr><td class="num">12</td><td>Automated Testing (Selenium, Cypress, dsb.)</td></tr>
+            <tr><td class="num">13</td><td>Performance Testing (Load, Stress, Scalability)</td></tr>
+            <tr><td class="num">14</td><td>Defect Management, Test Metrics, dan Review Materi</td></tr>
+            <tr class="row-exam"><td class="num">—</td><td><b>Ujian Akhir Semester (UAS)</b> — mencakup materi sesi 9–14</td></tr>
+          </table>
+        </div>
+      </section>
+
+      <section id="penilaian">
+        <h2>Komponen Penilaian</h2>
+        <p class="sec-desc">Bobot penilaian akhir mata kuliah.</p>
+        <div class="card">
+          <div class="bar-list">
+            <div class="bar-row">
+              <span>Tugas / Latihan Individu</span>
+              <div class="bar-track"><div class="bar-fill" style="width:25%"></div></div>
+              <span class="bar-pct">25%</span>
+            </div>
+            <div class="bar-row">
+              <span>Tugas Kelompok / Proyek</span>
+              <div class="bar-track"><div class="bar-fill" style="width:20%"></div></div>
+              <span class="bar-pct">20%</span>
+            </div>
+            <div class="bar-row">
+              <span>Keaktifan / Partisipasi</span>
+              <div class="bar-track"><div class="bar-fill" style="width:5%"></div></div>
+              <span class="bar-pct">5%</span>
+            </div>
+            <div class="bar-row">
+              <span>UTS</span>
+              <div class="bar-track"><div class="bar-fill" style="width:20%"></div></div>
+              <span class="bar-pct">20%</span>
+            </div>
+            <div class="bar-row">
+              <span>UAS</span>
+              <div class="bar-track"><div class="bar-fill" style="width:30%"></div></div>
+              <span class="bar-pct">30%</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SESI 1 (TEASER) -->
+      <section id="sesi1">
+        <div class="eyebrow">sesi-01</div>
+        <h2>Konsep, Tujuan, dan Peran SDLC dalam Testing</h2>
+        <p class="sec-desc">Sesi pembuka yang membangun fondasi berpikir: mengapa testing tidak bisa dilepaskan dari siklus hidup pengembangan perangkat lunak. Materi lengkap, sub-pokok bahasan mendalam, studi kasus, dan tugas sesi ini tersedia di halaman terpisah.</p>
+        <a href="sesi1.html" class="card" style="display:flex; align-items:center; justify-content:space-between; text-decoration:none; color:var(--ink);">
+          <span>
+            <span style="display:block; font-weight:600; font-size:15px; margin-bottom:3px;">Buka Materi Sesi 1 →</span>
+            <span style="display:block; font-size:13px; color:var(--ink-soft);">sesi1.html</span>
+          </span>
+          <span class="check" style="width:32px; height:32px; font-size:15px;">01</span>
+        </a>
+      </section>
+
+      <section id="referensi">
+        <h2>Referensi Buku (Satu Semester)</h2>
+        <p class="sec-desc">Daftar referensi utama yang digunakan sepanjang mata kuliah ini.</p>
+        <div class="card">
+          <ul class="ref-list">
+            <li><b>Jorgensen, P.C.</b> — Software Testing: A Craftsman's Approach.</li>
+            <li><b>Black, R., Graham, D., van Veenendaal, E.</b> — Foundations of Software Testing: ISTQB Certification.</li>
+            <li><b>Desikan, S., Ramesh, G.</b> — Software Testing: Principles and Practices.</li>
+            <li><b>Pressman, R.S.</b> — Software Engineering: A Practitioner's Approach.</li>
+            <li><b>Okken, B.</b> — Python Testing with pytest.</li>
+            <li><b>Kaner, C., Bach, J., Pettichord, B.</b> — Lessons Learned in Software Testing.</li>
+            <li>Dokumentasi resmi: JUnit 5, Selenium, Cypress, Apache JMeter.</li>
+          </ul>
+        </div>
+      </section>
+
+      <footer>
+        <span>Mata Kuliah Software Testing · 3 SKS</span>
+        <span>Dosen Pengampu: Philipus Suryo Subandoro</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>
