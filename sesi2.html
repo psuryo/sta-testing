@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sesi 2 — Manajemen Kualitas Perangkat Lunak</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAFAF7;
+    --paper-raised:#FFFFFF;
+    --ink:#1A1D29;
+    --ink-soft:#565B6E;
+    --rule:#E1DED4;
+    --pass:#0F6B5C;
+    --pass-bg:#E9F3EF;
+    --info:#2C5F8A;
+    --info-bg:#EAF1F7;
+    --amber:#A9761E;
+    --amber-bg:#FBF2E1;
+    --red:#B5432E;
+    --red-bg:#FBEDE9;
+    --mono-bg:#1A1D29;
+    --mono-text:#D9F2E6;
+    --sidebar-w:250px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+
+  .shell{display:flex; min-height:100vh;}
+
+  .sidebar{
+    width:var(--sidebar-w); flex-shrink:0;
+    background:var(--ink); color:#EDEBE0;
+    padding:32px 22px 40px;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .back-link{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'IBM Plex Mono', monospace; font-size:12px;
+    color:#8FE0C6; text-decoration:none; margin-bottom:26px;
+  }
+  .back-link:hover{text-decoration:underline;}
+  .brand-sub{
+    font-family:'IBM Plex Mono', monospace; font-size:11px;
+    color:#7C8093; margin-bottom:4px;
+  }
+  .brand-name{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:17px; color:#fff; margin-bottom:24px;
+  }
+  .nav-label{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.08em; color:#7C8093; margin-bottom:10px;
+  }
+  .toc-link{
+    display:block; font-size:13px; color:#C9C7BC; text-decoration:none;
+    padding:6px 0 6px 12px; border-left:2px solid #3A3D4A;
+    transition:all .15s;
+  }
+  .toc-link:hover{color:#fff; border-left-color:#4FE3B8;}
+
+  main{flex:1; min-width:0;}
+  .wrap{max-width:800px; margin:0 auto; padding:56px 32px 100px;}
+
+  section{margin-bottom:56px; scroll-margin-top:24px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--pass);
+    letter-spacing:.06em; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:"$"; color:var(--ink-soft);}
+  h1{
+    font-family:'Space Grotesk', sans-serif; font-size:36px; font-weight:700;
+    margin:0 0 14px; letter-spacing:-.01em; line-height:1.15;
+  }
+  h2{
+    font-family:'Space Grotesk', sans-serif; font-size:23px; font-weight:600; margin:0 0 6px;
+  }
+  h3{
+    font-family:'Space Grotesk', sans-serif; font-size:18px; font-weight:600; margin:26px 0 10px;
+  }
+  h4{font-size:15px; font-weight:600; margin:18px 0 8px;}
+  .lead{color:var(--ink-soft); font-size:16px; max-width:620px;}
+  .sec-desc{color:var(--ink-soft); font-size:14.5px; margin:0 0 20px;}
+  p{font-size:14.5px; margin:0 0 12px;}
+
+  .meta-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:20px;}
+  .meta-chip{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; background:var(--paper-raised);
+    border:1px solid var(--rule); padding:6px 12px; border-radius:100px; color:var(--ink-soft);
+  }
+
+  .card{
+    background:var(--paper-raised); border:1px solid var(--rule);
+    border-radius:12px; padding:22px 24px;
+  }
+
+  .obj-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .obj-list li{display:flex; gap:12px; align-items:flex-start; font-size:14.5px;}
+  .check{
+    flex-shrink:0; width:20px; height:20px; border-radius:5px; background:var(--pass-bg);
+    color:var(--pass); display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; margin-top:2px;
+  }
+
+  .callout{
+    display:flex; gap:12px; align-items:flex-start; border-radius:10px;
+    padding:14px 16px; font-size:14px; margin:16px 0;
+  }
+  .callout.info{background:var(--info-bg); border:1px solid #C7DBEA; color:#1E4560;}
+  .callout.tip{background:var(--pass-bg); border:1px solid #C9E4DA; color:#0C4F44;}
+  .callout.warn{background:var(--amber-bg); border:1px solid #ECD9B0; color:#6B4A0F;}
+  .callout b{font-weight:600;}
+  .callout-icon{font-size:16px; flex-shrink:0;}
+
+  /* definisi grid (3 perspektif kualitas) */
+  .def-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;}
+  @media (max-width:680px){.def-grid{grid-template-columns:1fr;}}
+  .def-card{border:1px solid var(--rule); border-radius:10px; padding:16px 18px; background:var(--paper-raised);}
+  .def-card .tag{font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--pass); margin-bottom:6px;}
+  .def-card h4{margin:0 0 6px; font-size:14px;}
+  .def-card p{font-size:12.5px; color:var(--ink-soft); margin:0;}
+
+  /* ISO 25010 characteristics */
+  .model-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:680px){.model-grid{grid-template-columns:1fr;}}
+  .model-card{border:1px solid var(--rule); border-radius:12px; padding:18px 20px; background:var(--paper-raised);}
+  .model-card h4{margin-top:0; display:flex; align-items:center; gap:8px;}
+  .model-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; padding:2px 8px;
+    border-radius:100px; background:var(--info-bg); color:var(--info); font-weight:500;
+  }
+  .model-card p{font-size:13px; color:var(--ink-soft); margin:0;}
+
+  /* QA vs QC vs Testing three-way */
+  .triad-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;}
+  @media (max-width:680px){.triad-grid{grid-template-columns:1fr;}}
+  .triad-card{border-radius:12px; padding:18px 20px;}
+  .triad-card.qa{background:var(--info-bg); border:1px solid #C7DBEA;}
+  .triad-card.qc{background:var(--pass-bg); border:1px solid #C9E4DA;}
+  .triad-card.test{background:var(--amber-bg); border:1px solid #ECD9B0;}
+  .triad-card h4{margin-top:0;}
+  .triad-question{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; font-style:italic;
+    margin-bottom:10px; padding:8px 10px; background:rgba(255,255,255,.5); border-radius:7px;
+  }
+  .triad-card ul{margin:8px 0 0; padding-left:16px; font-size:12.5px;}
+  .triad-card li{margin-bottom:5px;}
+
+  /* cost of quality escalation */
+  .cost-list{display:grid; gap:0;}
+  .cost-row{
+    display:grid; grid-template-columns:140px 1fr 60px; align-items:center;
+    gap:14px; padding:12px 0; border-bottom:1px solid var(--rule); font-size:13.5px;
+  }
+  .cost-row:last-child{border-bottom:none;}
+  .cost-track{height:10px; background:var(--rule); border-radius:100px; overflow:hidden;}
+  .cost-fill{height:100%; background:linear-gradient(90deg, var(--pass), var(--red)); border-radius:100px;}
+  .cost-val{font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--ink-soft); text-align:right;}
+
+  /* 4 kategori cost of quality */
+  .coq-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  @media (max-width:680px){.coq-grid{grid-template-columns:1fr;}}
+  .coq-card{border:1px solid var(--rule); border-radius:10px; padding:16px 18px; background:var(--paper-raised);}
+  .coq-card .tag{
+    font-family:'IBM Plex Mono', monospace; font-size:10px; text-transform:uppercase;
+    letter-spacing:.03em; padding:2px 8px; border-radius:100px; margin-bottom:8px; display:inline-block;
+  }
+  .coq-card.prevention .tag{background:var(--pass-bg); color:var(--pass);}
+  .coq-card.appraisal .tag{background:var(--info-bg); color:var(--info);}
+  .coq-card.internal .tag{background:var(--amber-bg); color:var(--amber);}
+  .coq-card.external .tag{background:var(--red-bg); color:var(--red);}
+  .coq-card h4{margin:0 0 6px; font-size:14px;}
+  .coq-card p{font-size:12.5px; color:var(--ink-soft); margin:0;}
+
+  /* metrik table */
+  .metric-table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  .metric-table th, .metric-table td{border:1px solid var(--rule); padding:10px 13px; text-align:left; vertical-align:top;}
+  .metric-table th{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:500;
+    font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em;
+  }
+  .metric-table code{
+    font-family:'IBM Plex Mono', monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;
+  }
+
+  /* standar cards */
+  .std-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;}
+  @media (max-width:680px){.std-grid{grid-template-columns:1fr;}}
+  .std-card{border:1px solid var(--rule); border-radius:10px; padding:16px 18px; background:var(--paper-raised);}
+  .std-card h4{margin:0 0 6px; font-size:14px;}
+  .std-card p{font-size:12.5px; color:var(--ink-soft); margin:0;}
+
+  /* case study */
+  .case-card{border:1px solid var(--rule); border-radius:12px; padding:20px 22px; background:var(--paper-raised);}
+  .case-card .case-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--info);
+    background:var(--info-bg); display:inline-block; padding:3px 9px; border-radius:100px; margin-bottom:10px;
+  }
+  .case-card p{font-size:13.5px; color:var(--ink-soft); margin-bottom:8px;}
+  .case-card .prompt-q{font-size:13.5px; color:var(--ink); font-weight:500; margin-top:12px;}
+  .case-card ul{font-size:13.5px; color:var(--ink-soft); margin:8px 0;}
+
+  details{
+    border:1px solid var(--rule); border-radius:10px; padding:14px 18px; margin-bottom:10px; background:var(--paper-raised);
+  }
+  summary{
+    cursor:pointer; font-size:14.5px; font-weight:500; list-style:none;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"+"; color:var(--pass); font-family:'IBM Plex Mono', monospace; font-size:16px;}
+  details[open] summary::after{content:"–";}
+  details[open] summary{margin-bottom:10px;}
+  .answer{font-size:13.5px; color:var(--ink-soft); border-top:1px solid var(--rule); padding-top:10px;}
+  .answer b{color:var(--pass);}
+
+  .task-card{background:var(--ink); color:#F2F1EA; border-radius:12px; padding:26px 28px;}
+  .task-card h3{color:#fff; margin-top:0;}
+  .task-card p{color:#D8D6CC; font-size:14px;}
+  .rubric-table{width:100%; border-collapse:collapse; margin-top:14px; font-size:13px;}
+  .rubric-table th, .rubric-table td{
+    border:1px solid rgba(255,255,255,.15); padding:9px 12px; text-align:left; color:#D8D6CC;
+  }
+  .rubric-table th{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:#8FE0C6;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .deadline-tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:12px;
+    background:rgba(255,255,255,.1); padding:5px 10px; border-radius:100px; color:#F2F1EA; margin-top:16px;
+  }
+
+  .ref-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .ref-list li{font-size:13.5px; color:var(--ink-soft); padding-left:18px; position:relative;}
+  .ref-list li::before{content:"—"; position:absolute; left:0; color:var(--pass);}
+  .ref-list b{color:var(--ink);}
+
+  .summary-list{list-style:none; margin:0; padding:0; display:grid; gap:8px;}
+  .summary-list li{
+    display:flex; gap:10px; align-items:flex-start; font-size:14px;
+    background:var(--pass-bg); padding:10px 14px; border-radius:8px; color:#0C4F44;
+  }
+
+  footer{
+    border-top:1px solid var(--rule); padding-top:24px; margin-top:20px;
+    color:var(--ink-soft); font-size:13px; display:flex; justify-content:space-between;
+    flex-wrap:wrap; gap:8px;
+  }
+  .nav-next{
+    display:flex; justify-content:space-between; align-items:center; gap:16px;
+    border:1px solid var(--rule); border-radius:12px; padding:18px 22px; margin-top:40px;
+  }
+  .nav-next a{text-decoration:none; font-size:13.5px; color:var(--ink-soft);}
+  .nav-next .to-next{color:var(--pass); font-weight:500;}
+
+  @media (max-width:860px){
+    .sidebar{display:none;}
+    .wrap{padding:40px 20px 80px;}
+    h1{font-size:28px;}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <nav class="sidebar">
+    <a class="back-link" href="index.html">← Kembali ke Beranda</a>
+    <div class="brand-sub">software-testing / sesi-02</div>
+    <div class="brand-name">Manajemen Kualitas PL</div>
+
+    <div class="nav-label">Isi Halaman</div>
+    <a class="toc-link" href="#pendahuluan">Pendahuluan</a>
+    <a class="toc-link" href="#tujuan">Tujuan Pembelajaran</a>
+    <a class="toc-link" href="#definisi">2.1 Definisi Kualitas PL</a>
+    <a class="toc-link" href="#model">2.2 Model Kualitas ISO/IEC 25010</a>
+    <a class="toc-link" href="#triad">2.3 QA vs QC vs Testing</a>
+    <a class="toc-link" href="#coq">2.4 Cost of Quality</a>
+    <a class="toc-link" href="#metrik">2.5 Metrik Kualitas</a>
+    <a class="toc-link" href="#standar">2.6 Standar &amp; Framework</a>
+    <a class="toc-link" href="#studikasus">Studi Kasus Diskusi</a>
+    <a class="toc-link" href="#rangkuman">Rangkuman</a>
+    <a class="toc-link" href="#latihan">Latihan Pemahaman</a>
+    <a class="toc-link" href="#tugas">Tugas Sesi 2</a>
+    <a class="toc-link" href="#referensi">Referensi</a>
+  </nav>
+
+  <main>
+    <div class="wrap">
+
+      <section id="pendahuluan">
+        <div class="eyebrow">sesi-02 / 14</div>
+        <h1>Manajemen Kualitas Perangkat Lunak</h1>
+        <p class="lead">Testing hanyalah salah satu cara untuk mencapai kualitas — bukan tujuan itu sendiri. Sesi ini membahas kerangka berpikir yang lebih luas: apa itu "kualitas", bagaimana mengukurnya, dan mengapa mencegah cacat jauh lebih murah daripada memperbaikinya belakangan.</p>
+        <div class="meta-row">
+          <span class="meta-chip">⏱ 50 menit</span>
+          <span class="meta-chip">🎯 CPMK-1, CPMK-2</span>
+          <span class="meta-chip">📖 3 referensi utama</span>
+        </div>
+      </section>
+
+      <section id="tujuan">
+        <h2>Tujuan Pembelajaran</h2>
+        <p class="sec-desc">Setelah mengikuti sesi ini, mahasiswa mampu:</p>
+        <div class="card">
+          <ul class="obj-list">
+            <li><span class="check">✓</span> Menjelaskan berbagai perspektif definisi kualitas perangkat lunak.</li>
+            <li><span class="check">✓</span> Menguraikan karakteristik kualitas menurut model ISO/IEC 25010.</li>
+            <li><span class="check">✓</span> Membedakan Quality Assurance (QA), Quality Control (QC), dan Testing secara tegas.</li>
+            <li><span class="check">✓</span> Menjelaskan konsep Cost of Quality dan mengapa biaya cacat meningkat drastis semakin telat ditemukan.</li>
+            <li><span class="check">✓</span> Menghitung metrik kualitas dasar seperti defect density dan defect removal efficiency.</li>
+            <li><span class="check">✓</span> Mengenali standar dan framework kualitas yang umum dipakai industri (ISO 9001, CMMI, Six Sigma).</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="definisi">
+        <div class="eyebrow">2.1</div>
+        <h2>Definisi Kualitas Perangkat Lunak</h2>
+        <p>"Kualitas" adalah kata yang mudah diucapkan tapi sulit didefinisikan secara presisi. Dalam rekayasa perangkat lunak, ada beberapa perspektif yang saling melengkapi — dan ketiganya perlu dipahami bersama, bukan dipilih salah satu.</p>
+
+        <div class="def-grid">
+          <div class="def-card">
+            <div class="tag">PERSPEKTIF 1</div>
+            <h4>Conformance to Requirements</h4>
+            <p>Perangkat lunak berkualitas jika sesuai dengan spesifikasi/requirement yang telah disepakati. Perspektif ini dekat dengan konsep <b>verifikasi</b> yang sudah dibahas di Sesi 1.</p>
+          </div>
+          <div class="def-card">
+            <div class="tag">PERSPEKTIF 2</div>
+            <h4>Fitness for Use</h4>
+            <p>Perangkat lunak berkualitas jika benar-benar dapat digunakan secara efektif untuk mencapai tujuan penggunanya — dekat dengan konsep <b>validasi</b>.</p>
+          </div>
+          <div class="def-card">
+            <div class="tag">PERSPEKTIF 3</div>
+            <h4>User Satisfaction</h4>
+            <p>Perangkat lunak berkualitas jika pengguna merasa puas menggunakannya — mencakup aspek yang sulit diukur secara teknis, seperti pengalaman dan kepercayaan pengguna.</p>
+          </div>
+        </div>
+
+        <div class="callout tip">
+          <span class="callout-icon">✓</span>
+          <span><b>Poin kunci:</b> ketiga perspektif ini bisa saling bertentangan dalam praktik. Sebuah software bisa 100% sesuai spesifikasi (perspektif 1) tapi tetap membuat pengguna frustrasi (perspektif 3) — inilah alasan mengapa manajemen kualitas butuh pendekatan yang lebih menyeluruh daripada sekadar "lulus testing".</span>
+        </div>
+      </section>
+
+      <section id="model">
+        <div class="eyebrow">2.2</div>
+        <h2>Model Kualitas Perangkat Lunak — ISO/IEC 25010</h2>
+        <p>Untuk membuat konsep "kualitas" bisa diukur dan dikomunikasikan secara konsisten, industri memakai model kualitas standar. Yang paling banyak dirujuk saat ini adalah <b>ISO/IEC 25010</b> (penerus dari model klasik McCall's Quality Model), yang memecah kualitas menjadi delapan karakteristik utama.</p>
+
+        <div class="model-grid">
+          <div class="model-card">
+            <h4>Functional Suitability <span class="model-tag">fungsi</span></h4>
+            <p>Sejauh mana produk menyediakan fungsi yang memenuhi kebutuhan yang dinyatakan maupun tersirat.</p>
+          </div>
+          <div class="model-card">
+            <h4>Performance Efficiency <span class="model-tag">kinerja</span></h4>
+            <p>Kinerja relatif terhadap sumber daya yang digunakan — waktu respons, pemakaian memori/CPU.</p>
+          </div>
+          <div class="model-card">
+            <h4>Compatibility <span class="model-tag">kompatibilitas</span></h4>
+            <p>Kemampuan bertukar informasi dan berjalan berdampingan dengan sistem/perangkat lain di lingkungan yang sama.</p>
+          </div>
+          <div class="model-card">
+            <h4>Usability <span class="model-tag">kegunaan</span></h4>
+            <p>Sejauh mana produk dapat digunakan secara efektif, efisien, dan memuaskan oleh pengguna tertentu.</p>
+          </div>
+          <div class="model-card">
+            <h4>Reliability <span class="model-tag">keandalan</span></h4>
+            <p>Kemampuan sistem menjalankan fungsi tertentu secara konsisten dalam kondisi tertentu dan periode tertentu.</p>
+          </div>
+          <div class="model-card">
+            <h4>Security <span class="model-tag">keamanan</span></h4>
+            <p>Sejauh mana produk melindungi data dan informasi dari akses tidak sah, sekaligus tetap dapat diakses pihak yang berwenang.</p>
+          </div>
+          <div class="model-card">
+            <h4>Maintainability <span class="model-tag">pemeliharaan</span></h4>
+            <p>Tingkat efektivitas dan efisiensi produk dapat dimodifikasi — diperbaiki, ditingkatkan, atau disesuaikan.</p>
+          </div>
+          <div class="model-card">
+            <h4>Portability <span class="model-tag">portabilitas</span></h4>
+            <p>Sejauh mana produk dapat dipindahkan secara efektif dari satu lingkungan (hardware/software/organisasi) ke lingkungan lain.</p>
+          </div>
+        </div>
+
+        <div class="callout info">
+          <span class="callout-icon">💡</span>
+          <span>Delapan karakteristik ini nantinya menjadi dasar pembagian <b>Functional vs Non-Functional Testing</b> yang akan dibahas di Sesi 3 — Functional Suitability diuji lewat functional testing, sementara tujuh karakteristik lainnya (performance, usability, security, dst.) diuji lewat non-functional testing.</span>
+        </div>
+      </section>
+
+      <section id="triad">
+        <div class="eyebrow">2.3</div>
+        <h2>Quality Assurance vs Quality Control vs Testing</h2>
+        <p>Tiga istilah ini sering dipakai bergantian padahal cakupannya berbeda tingkatan — QA adalah payung paling luas, Testing adalah bagian paling spesifik.</p>
+
+        <div class="triad-grid">
+          <div class="triad-card qa">
+            <h4>Quality Assurance (QA)</h4>
+            <div class="triad-question">Berorientasi PROSES</div>
+            <p style="font-size:13px; margin:0;">Aktivitas untuk memastikan <b>proses</b> pengembangan berjalan dengan cara yang akan menghasilkan produk berkualitas. Bersifat preventif.</p>
+            <ul>
+              <li>Menetapkan standar &amp; prosedur kerja</li>
+              <li>Audit proses pengembangan</li>
+              <li>Pelatihan tim</li>
+            </ul>
+          </div>
+          <div class="triad-card qc">
+            <h4>Quality Control (QC)</h4>
+            <div class="triad-question">Berorientasi PRODUK</div>
+            <p style="font-size:13px; margin:0;">Aktivitas untuk memeriksa apakah <b>produk</b> yang dihasilkan memenuhi standar kualitas. Bersifat korektif/detektif.</p>
+            <ul>
+              <li>Inspeksi hasil kerja</li>
+              <li>Review kode &amp; dokumen</li>
+              <li>Mencakup aktivitas testing</li>
+            </ul>
+          </div>
+          <div class="triad-card test">
+            <h4>Testing</h4>
+            <div class="triad-question">Bagian dari QC</div>
+            <p style="font-size:13px; margin:0;">Aktivitas <b>eksekusi</b> program untuk menemukan defect — subset spesifik dari QC yang berfokus pada verifikasi/validasi lewat menjalankan sistem.</p>
+            <ul>
+              <li>Menjalankan test case</li>
+              <li>Membandingkan hasil aktual vs harapan</li>
+              <li>Melaporkan defect</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span><b>Kesalahan umum:</b> menganggap "QA" dan "Testing" adalah hal yang sama persis. Faktanya, seseorang bisa menjadi bagian tim QA tanpa pernah mengeksekusi satu pun test case — misalnya QA yang fokus mengaudit apakah tim mengikuti proses code review yang ditetapkan.</span>
+        </div>
+      </section>
+
+      <section id="coq">
+        <div class="eyebrow">2.4</div>
+        <h2>Cost of Quality — Mengapa Cacat Lebih Mahal Bila Ditemukan Belakangan</h2>
+        <p>Salah satu argumen paling kuat untuk manajemen kualitas yang proaktif adalah data empiris: biaya memperbaiki satu defect meningkat secara eksponensial semakin telat ia ditemukan dalam SDLC.</p>
+
+        <div class="card">
+          <div class="cost-list">
+            <div class="cost-row">
+              <span>Requirement</span>
+              <div class="cost-track"><div class="cost-fill" style="width:5%"></div></div>
+              <span class="cost-val">1×</span>
+            </div>
+            <div class="cost-row">
+              <span>Design</span>
+              <div class="cost-track"><div class="cost-fill" style="width:15%"></div></div>
+              <span class="cost-val">5×</span>
+            </div>
+            <div class="cost-row">
+              <span>Coding</span>
+              <div class="cost-track"><div class="cost-fill" style="width:30%"></div></div>
+              <span class="cost-val">10×</span>
+            </div>
+            <div class="cost-row">
+              <span>Testing</span>
+              <div class="cost-track"><div class="cost-fill" style="width:50%"></div></div>
+              <span class="cost-val">15×</span>
+            </div>
+            <div class="cost-row">
+              <span>Produksi</span>
+              <div class="cost-track"><div class="cost-fill" style="width:95%"></div></div>
+              <span class="cost-val">30–100×</span>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:12.5px; color:var(--ink-soft); margin-top:8px;">*Angka relatif berdasarkan studi klasik industri (mis. Boehm), digunakan untuk ilustrasi tren — bukan nilai eksak untuk semua proyek.</p>
+
+        <h4>Empat Kategori Cost of Quality</h4>
+        <div class="coq-grid">
+          <div class="coq-card prevention">
+            <span class="tag">Prevention Cost</span>
+            <h4>Biaya Pencegahan</h4>
+            <p>Dikeluarkan untuk mencegah cacat sebelum terjadi — pelatihan, penyusunan standar, code review, perencanaan test sejak awal.</p>
+          </div>
+          <div class="coq-card appraisal">
+            <span class="tag">Appraisal Cost</span>
+            <h4>Biaya Penilaian</h4>
+            <p>Dikeluarkan untuk menemukan cacat lewat inspeksi/testing sebelum produk dirilis — eksekusi test case, QA review.</p>
+          </div>
+          <div class="coq-card internal">
+            <span class="tag">Internal Failure Cost</span>
+            <h4>Biaya Kegagalan Internal</h4>
+            <p>Dikeluarkan untuk memperbaiki cacat yang ditemukan <b>sebelum</b> rilis — debugging, rework, re-testing.</p>
+          </div>
+          <div class="coq-card external">
+            <span class="tag">External Failure Cost</span>
+            <h4>Biaya Kegagalan Eksternal</h4>
+            <p>Dikeluarkan akibat cacat yang ditemukan <b>setelah</b> rilis — dukungan pelanggan, hotfix darurat, kerugian reputasi, bahkan tuntutan hukum.</p>
+          </div>
+        </div>
+
+        <div class="callout tip">
+          <span class="callout-icon">✓</span>
+          <span><b>Implikasi praktis:</b> investasi lebih besar pada Prevention Cost (mis. requirement review, test planning sejak awal) terbukti mengurangi External Failure Cost yang jauh lebih mahal — inilah dasar argumen mengapa testing dini dan manajemen kualitas proaktif lebih hemat biaya dalam jangka panjang.</span>
+        </div>
+      </section>
+
+      <section id="metrik">
+        <div class="eyebrow">2.5</div>
+        <h2>Metrik Kualitas Perangkat Lunak</h2>
+        <p>Manajemen kualitas membutuhkan angka yang terukur, bukan sekadar penilaian subjektif. Berikut metrik dasar yang paling umum dipakai.</p>
+
+        <div class="card">
+          <table class="metric-table">
+            <tr><th>Metrik</th><th>Rumus</th><th>Kegunaan</th></tr>
+            <tr>
+              <td>Defect Density</td>
+              <td><code>Jumlah Defect ÷ Ukuran (KLOC/Function Point)</code></td>
+              <td>Mengukur kepadatan cacat relatif terhadap ukuran perangkat lunak — untuk membandingkan kualitas antar modul/rilis.</td>
+            </tr>
+            <tr>
+              <td>Defect Removal Efficiency (DRE)</td>
+              <td><code>Defect ditemukan sebelum rilis ÷ Total defect (sebelum + setelah rilis) × 100%</code></td>
+              <td>Mengukur seberapa efektif proses testing menyaring cacat sebelum sampai ke pengguna. Semakin mendekati 100%, semakin baik.</td>
+            </tr>
+            <tr>
+              <td>Mean Time To Failure (MTTF)</td>
+              <td><code>Total waktu operasi ÷ Jumlah kegagalan</code></td>
+              <td>Mengukur rata-rata waktu sistem beroperasi sebelum mengalami kegagalan — indikator reliabilitas.</td>
+            </tr>
+            <tr>
+              <td>Mean Time Between Failures (MTBF)</td>
+              <td><code>MTTF + Mean Time To Repair (MTTR)</code></td>
+              <td>Mengukur rata-rata waktu antar kegagalan, termasuk waktu perbaikan — dipakai untuk sistem yang bisa dipulihkan.</td>
+            </tr>
+          </table>
+        </div>
+      </section>
+
+      <section id="standar">
+        <div class="eyebrow">2.6</div>
+        <h2>Standar &amp; Framework Kualitas di Industri</h2>
+        <p>Selain model dan metrik, organisasi juga sering mengacu pada standar/framework yang diakui secara internasional untuk mengelola kualitas secara sistematis.</p>
+
+        <div class="std-grid">
+          <div class="std-card">
+            <h4>ISO 9001</h4>
+            <p>Standar manajemen mutu umum (tidak khusus software) yang menekankan konsistensi proses dan kepuasan pelanggan melalui sistem manajemen mutu yang terdokumentasi.</p>
+          </div>
+          <div class="std-card">
+            <h4>CMMI</h4>
+            <p>Capability Maturity Model Integration — mengukur kematangan proses organisasi dalam 5 level, dari proses ad-hoc (Level 1) hingga proses yang terus dioptimalkan (Level 5).</p>
+          </div>
+          <div class="std-card">
+            <h4>Six Sigma</h4>
+            <p>Metodologi berbasis data untuk mengurangi variasi dan cacat proses, menggunakan siklus DMAIC (Define, Measure, Analyze, Improve, Control).</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="studikasus">
+        <h2>Studi Kasus Diskusi Kelas</h2>
+        <p class="sec-desc">Diskusi kelompok kecil (4–5 orang), 10 menit diskusi + 2 menit presentasi per kelompok.</p>
+        <div class="case-card">
+          <span class="case-tag">Kasus Diskusi</span>
+          <h4 style="margin-top:0;">Aplikasi E-Commerce yang "Lolos Testing" tapi Ditinggalkan Pengguna</h4>
+          <p>Sebuah aplikasi e-commerce dinyatakan lulus seluruh test case fungsional (checkout, pembayaran, pengiriman semua berjalan sesuai spesifikasi). Namun, dalam 3 bulan setelah rilis, rating aplikasi di app store hanya 2.1/5 dengan keluhan dominan: "aplikasi lambat", "terlalu banyak langkah untuk checkout", dan "sering force close di HP kelas menengah ke bawah".</p>
+          <ul>
+            <li>Karakteristik ISO/IEC 25010 mana saja yang kemungkinan gagal, meski functional suitability sudah terpenuhi?</li>
+            <li>Apakah ini kegagalan QA, QC, atau keduanya? Jelaskan.</li>
+            <li>Termasuk kategori Cost of Quality apa biaya perbaikan yang harus dikeluarkan sekarang?</li>
+          </ul>
+          <p class="prompt-q">Diskusikan dan siapkan jawaban kelompok untuk dipresentasikan singkat.</p>
+        </div>
+      </section>
+
+      <section id="rangkuman">
+        <h2>Rangkuman</h2>
+        <ul class="summary-list">
+          <li><span>✓</span> Kualitas perangkat lunak punya tiga perspektif yang saling melengkapi: conformance to requirements, fitness for use, dan user satisfaction.</li>
+          <li><span>✓</span> ISO/IEC 25010 memecah kualitas menjadi 8 karakteristik: functional suitability, performance efficiency, compatibility, usability, reliability, security, maintainability, dan portability.</li>
+          <li><span>✓</span> QA berorientasi proses (preventif), QC berorientasi produk (detektif), dan Testing adalah bagian spesifik dari QC yang melibatkan eksekusi program.</li>
+          <li><span>✓</span> Biaya memperbaiki defect meningkat drastis semakin telat ditemukan — inilah dasar argumen kuat untuk testing dini dan QA proaktif.</li>
+          <li><span>✓</span> Metrik seperti Defect Density dan Defect Removal Efficiency memberi ukuran objektif atas kualitas produk dan efektivitas proses testing.</li>
+        </ul>
+      </section>
+
+      <section id="latihan">
+        <h2>Latihan Pemahaman Mandiri</h2>
+        <p class="sec-desc">Klik tiap soal untuk melihat kunci jawaban dan penjelasannya.</p>
+
+        <details>
+          <summary>1. Sebuah tim QA menyusun checklist code review yang wajib diikuti seluruh developer sebelum merge kode. Apakah ini termasuk aktivitas QA atau QC?</summary>
+          <div class="answer"><b>Jawaban:</b> QA (Quality Assurance) — karena aktivitas ini berorientasi pada <i>proses</i> (menetapkan standar/prosedur kerja) untuk mencegah cacat, bukan memeriksa produk akhir secara langsung.</div>
+        </details>
+
+        <details>
+          <summary>2. Aplikasi berjalan sesuai spesifikasi namun sangat lambat saat diakses 1000 pengguna bersamaan. Karakteristik ISO/IEC 25010 mana yang gagal?</summary>
+          <div class="answer"><b>Jawaban:</b> <b>Performance Efficiency</b> — karakteristik ini mengukur kinerja relatif terhadap sumber daya dan kondisi penggunaan, termasuk skenario beban tinggi.</div>
+        </details>
+
+        <details>
+          <summary>3. Sebuah bug kritis lolos ke produksi dan baru ditemukan oleh pelanggan, menyebabkan tim harus merilis hotfix darurat. Termasuk kategori Cost of Quality apa biaya hotfix tersebut?</summary>
+          <div class="answer"><b>Jawaban:</b> <b>External Failure Cost</b> — karena defect ditemukan setelah produk dirilis ke pengguna, bukan sebelum rilis (yang akan masuk kategori Internal Failure Cost).</div>
+        </details>
+
+        <details>
+          <summary>4. Sebuah tim menemukan 40 defect sebelum rilis dan 10 defect setelah rilis dalam 3 bulan pertama. Berapa Defect Removal Efficiency (DRE)-nya?</summary>
+          <div class="answer"><b>Jawaban:</b> DRE = 40 ÷ (40 + 10) × 100% = <b>80%</b>. Artinya 80% dari total defect berhasil disaring sebelum sampai ke pengguna, sementara 20% lolos ke produksi.</div>
+        </details>
+      </section>
+
+      <section id="tugas">
+        <h2>Tugas Sesi 2</h2>
+        <div class="task-card">
+          <h3>Analisis Kualitas Aplikasi Nyata</h3>
+          <p>Pilih satu aplikasi yang biasa Anda gunakan sehari-hari (mobile atau web). Evaluasi aplikasi tersebut terhadap kedelapan karakteristik ISO/IEC 25010, lalu identifikasi minimal 3 potensi masalah kualitas yang Anda temukan. Untuk setiap masalah, tentukan kategori Cost of Quality yang relevan bila masalah tersebut baru ditemukan setelah rilis.</p>
+          <p style="color:#F2F1EA;">Laporan maksimal 2 halaman, mencakup: (1) profil aplikasi yang dipilih, (2) tabel evaluasi 8 karakteristik ISO/IEC 25010, (3) minimal 3 temuan masalah kualitas beserta kategorisasi Cost of Quality-nya.</p>
+
+          <table class="rubric-table">
+            <tr><th>Kriteria</th><th>Bobot</th></tr>
+            <tr><td>Ketepatan pemetaan ke 8 karakteristik ISO/IEC 25010</td><td>35%</td></tr>
+            <tr><td>Kedalaman analisis temuan masalah kualitas</td><td>35%</td></tr>
+            <tr><td>Ketepatan kategorisasi Cost of Quality</td><td>20%</td></tr>
+            <tr><td>Kejelasan struktur &amp; penulisan</td><td>10%</td></tr>
+          </table>
+
+          <span class="deadline-tag">⏳ Dikumpulkan sebelum Sesi 3 dimulai</span>
+        </div>
+      </section>
+
+      <section id="referensi">
+        <h2>Referensi Sesi Ini</h2>
+        <div class="card">
+          <ul class="ref-list">
+            <li><b>Pressman, R.S.</b> — Software Engineering: A Practitioner's Approach, bab mengenai manajemen kualitas dan metrik perangkat lunak.</li>
+            <li><b>Black, R., Graham, D., van Veenendaal, E.</b> — Foundations of Software Testing: ISTQB Certification, bagian mengenai Quality Assurance dan Cost of Quality.</li>
+            <li><b>ISO/IEC 25010:2011</b> — Systems and software engineering: Systems and software Quality Requirements and Evaluation (SQuaRE).</li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="nav-next">
+        <a href="sesi1.html">← Sesi 1: SDLC &amp; Peran Testing</a>
+        <a class="to-next" href="index.html#silabus">Sesi 3: Jenis-jenis Testing →</a>
+      </div>
+
+      <footer>
+        <span>Mata Kuliah Software Testing · 3 SKS</span>
+        <span>Dosen Pengampu: Philipus Suryo Subandoro</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>
