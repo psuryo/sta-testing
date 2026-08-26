@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sesi 3 — Jenis-jenis Testing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAFAF7;
+    --paper-raised:#FFFFFF;
+    --ink:#1A1D29;
+    --ink-soft:#565B6E;
+    --rule:#E1DED4;
+    --pass:#0F6B5C;
+    --pass-bg:#E9F3EF;
+    --info:#2C5F8A;
+    --info-bg:#EAF1F7;
+    --amber:#A9761E;
+    --amber-bg:#FBF2E1;
+    --red:#B5432E;
+    --red-bg:#FBEDE9;
+    --mono-bg:#1A1D29;
+    --mono-text:#D9F2E6;
+    --sidebar-w:250px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+
+  .shell{display:flex; min-height:100vh;}
+
+  .sidebar{
+    width:var(--sidebar-w); flex-shrink:0;
+    background:var(--ink); color:#EDEBE0;
+    padding:32px 22px 40px;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .back-link{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'IBM Plex Mono', monospace; font-size:12px;
+    color:#8FE0C6; text-decoration:none; margin-bottom:26px;
+  }
+  .back-link:hover{text-decoration:underline;}
+  .brand-sub{
+    font-family:'IBM Plex Mono', monospace; font-size:11px;
+    color:#7C8093; margin-bottom:4px;
+  }
+  .brand-name{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:17px; color:#fff; margin-bottom:24px;
+  }
+  .nav-label{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.08em; color:#7C8093; margin-bottom:10px;
+  }
+  .toc-link{
+    display:block; font-size:13px; color:#C9C7BC; text-decoration:none;
+    padding:6px 0 6px 12px; border-left:2px solid #3A3D4A;
+    transition:all .15s;
+  }
+  .toc-link:hover{color:#fff; border-left-color:#4FE3B8;}
+
+  main{flex:1; min-width:0;}
+  .wrap{max-width:800px; margin:0 auto; padding:56px 32px 100px;}
+
+  section{margin-bottom:56px; scroll-margin-top:24px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--pass);
+    letter-spacing:.06em; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:"$"; color:var(--ink-soft);}
+  h1{
+    font-family:'Space Grotesk', sans-serif; font-size:36px; font-weight:700;
+    margin:0 0 14px; letter-spacing:-.01em; line-height:1.15;
+  }
+  h2{
+    font-family:'Space Grotesk', sans-serif; font-size:23px; font-weight:600; margin:0 0 6px;
+  }
+  h3{
+    font-family:'Space Grotesk', sans-serif; font-size:18px; font-weight:600; margin:26px 0 10px;
+  }
+  h4{font-size:15px; font-weight:600; margin:18px 0 8px;}
+  .lead{color:var(--ink-soft); font-size:16px; max-width:620px;}
+  .sec-desc{color:var(--ink-soft); font-size:14.5px; margin:0 0 20px;}
+  p{font-size:14.5px; margin:0 0 12px;}
+
+  .meta-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:20px;}
+  .meta-chip{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; background:var(--paper-raised);
+    border:1px solid var(--rule); padding:6px 12px; border-radius:100px; color:var(--ink-soft);
+  }
+
+  .card{
+    background:var(--paper-raised); border:1px solid var(--rule);
+    border-radius:12px; padding:22px 24px;
+  }
+
+  .obj-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .obj-list li{display:flex; gap:12px; align-items:flex-start; font-size:14.5px;}
+  .check{
+    flex-shrink:0; width:20px; height:20px; border-radius:5px; background:var(--pass-bg);
+    color:var(--pass); display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; margin-top:2px;
+  }
+
+  .callout{
+    display:flex; gap:12px; align-items:flex-start; border-radius:10px;
+    padding:14px 16px; font-size:14px; margin:16px 0;
+  }
+  .callout.info{background:var(--info-bg); border:1px solid #C7DBEA; color:#1E4560;}
+  .callout.tip{background:var(--pass-bg); border:1px solid #C9E4DA; color:#0C4F44;}
+  .callout.warn{background:var(--amber-bg); border:1px solid #ECD9B0; color:#6B4A0F;}
+  .callout b{font-weight:600;}
+  .callout-icon{font-size:16px; flex-shrink:0;}
+
+  /* functional vs non-functional 2-col */
+  .fnf-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:680px){.fnf-grid{grid-template-columns:1fr;}}
+  .fnf-card{border-radius:12px; padding:20px 22px;}
+  .fnf-card.func{background:var(--pass-bg); border:1px solid #C9E4DA;}
+  .fnf-card.nonfunc{background:var(--info-bg); border:1px solid #C7DBEA;}
+  .fnf-card h4{margin-top:0;}
+  .fnf-question{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; font-style:italic;
+    margin-bottom:10px; padding:9px 11px; background:rgba(255,255,255,.5); border-radius:7px;
+  }
+  .fnf-card ul{margin:8px 0 0; padding-left:18px; font-size:13px;}
+  .fnf-card li{margin-bottom:5px;}
+
+  /* non-functional subtype chips */
+  .chip-grid{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px;}
+  .nf-chip{
+    font-size:12.5px; background:var(--paper-raised); border:1px solid var(--rule);
+    padding:6px 12px; border-radius:100px; color:var(--ink-soft);
+  }
+
+  /* manual vs automated */
+  .ma-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:680px){.ma-grid{grid-template-columns:1fr;}}
+  .ma-card{border-radius:12px; padding:20px 22px;}
+  .ma-card.manual{background:var(--amber-bg); border:1px solid #ECD9B0;}
+  .ma-card.auto{background:var(--pass-bg); border:1px solid #C9E4DA;}
+  .ma-card h4{margin-top:0;}
+  .pro-con{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px;}
+  .pro-con div{font-size:12.5px;}
+  .pro-con .label{
+    font-family:'IBM Plex Mono', monospace; font-size:10px; text-transform:uppercase;
+    letter-spacing:.04em; color:var(--ink-soft); margin-bottom:5px;
+  }
+  .pro-con ul{margin:0; padding-left:16px;}
+  .pro-con li{margin-bottom:3px;}
+
+  /* automation pyramid */
+  .pyramid{display:grid; gap:6px; max-width:420px; margin:16px auto 0;}
+  .pyr-row{
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    padding:14px 10px; border-radius:8px; font-size:13px; color:#fff; font-weight:500;
+  }
+  .pyr-row.e2e{width:55%; margin:0 auto; background:var(--red);}
+  .pyr-row.integ{width:75%; margin:0 auto; background:var(--amber);}
+  .pyr-row.unit{width:100%; margin:0 auto; background:var(--pass);}
+  .pyr-label{font-size:11px; opacity:.85; display:block; font-family:'IBM Plex Mono', monospace;}
+
+  /* 2x2 matrix */
+  .matrix{display:grid; grid-template-columns:auto 1fr 1fr; gap:0; margin-top:6px;}
+  .matrix .mcell{border:1px solid var(--rule); padding:14px 16px; font-size:13px;}
+  .matrix .mhead{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-size:11px;
+    text-transform:uppercase; letter-spacing:.03em; color:var(--ink-soft);
+    display:flex; align-items:center; justify-content:center; text-align:center;
+  }
+  .matrix .mrowlabel{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-size:11px;
+    text-transform:uppercase; letter-spacing:.03em; color:var(--ink-soft);
+    display:flex; align-items:center; writing-mode:vertical-rl; text-orientation:mixed;
+    justify-content:center; padding:8px;
+  }
+  .matrix .mexample{color:var(--ink-soft); font-size:12px; margin-top:4px;}
+  @media (max-width:680px){
+    .matrix{grid-template-columns:1fr; }
+    .matrix .mrowlabel{writing-mode:horizontal-tb; font-weight:600;}
+  }
+
+  /* case study classification exercise */
+  .classify-card{border:1px solid var(--rule); border-radius:10px; padding:16px 18px; background:var(--paper-raised); margin-bottom:10px;}
+  .classify-card .scenario{font-size:13.5px; margin-bottom:8px;}
+  .classify-tags{display:flex; gap:6px; flex-wrap:wrap;}
+  .classify-tags span{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; padding:3px 9px;
+    border-radius:100px; background:var(--paper); border:1px solid var(--rule); color:var(--ink-soft);
+  }
+
+  details{
+    border:1px solid var(--rule); border-radius:10px; padding:14px 18px; margin-bottom:10px; background:var(--paper-raised);
+  }
+  summary{
+    cursor:pointer; font-size:14.5px; font-weight:500; list-style:none;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"+"; color:var(--pass); font-family:'IBM Plex Mono', monospace; font-size:16px;}
+  details[open] summary::after{content:"–";}
+  details[open] summary{margin-bottom:10px;}
+  .answer{font-size:13.5px; color:var(--ink-soft); border-top:1px solid var(--rule); padding-top:10px;}
+  .answer b{color:var(--pass);}
+
+  .task-card{background:var(--ink); color:#F2F1EA; border-radius:12px; padding:26px 28px;}
+  .task-card h3{color:#fff; margin-top:0;}
+  .task-card p{color:#D8D6CC; font-size:14px;}
+  .rubric-table{width:100%; border-collapse:collapse; margin-top:14px; font-size:13px;}
+  .rubric-table th, .rubric-table td{
+    border:1px solid rgba(255,255,255,.15); padding:9px 12px; text-align:left; color:#D8D6CC;
+  }
+  .rubric-table th{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:#8FE0C6;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .deadline-tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:12px;
+    background:rgba(255,255,255,.1); padding:5px 10px; border-radius:100px; color:#F2F1EA; margin-top:16px;
+  }
+
+  .ref-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .ref-list li{font-size:13.5px; color:var(--ink-soft); padding-left:18px; position:relative;}
+  .ref-list li::before{content:"—"; position:absolute; left:0; color:var(--pass);}
+  .ref-list b{color:var(--ink);}
+
+  .summary-list{list-style:none; margin:0; padding:0; display:grid; gap:8px;}
+  .summary-list li{
+    display:flex; gap:10px; align-items:flex-start; font-size:14px;
+    background:var(--pass-bg); padding:10px 14px; border-radius:8px; color:#0C4F44;
+  }
+
+  footer{
+    border-top:1px solid var(--rule); padding-top:24px; margin-top:20px;
+    color:var(--ink-soft); font-size:13px; display:flex; justify-content:space-between;
+    flex-wrap:wrap; gap:8px;
+  }
+  .nav-next{
+    display:flex; justify-content:space-between; align-items:center; gap:16px;
+    border:1px solid var(--rule); border-radius:12px; padding:18px 22px; margin-top:40px;
+  }
+  .nav-next a{text-decoration:none; font-size:13.5px; color:var(--ink-soft);}
+  .nav-next .to-next{color:var(--pass); font-weight:500;}
+
+  @media (max-width:860px){
+    .sidebar{display:none;}
+    .wrap{padding:40px 20px 80px;}
+    h1{font-size:28px;}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <nav class="sidebar">
+    <a class="back-link" href="index.html">← Kembali ke Beranda</a>
+    <div class="brand-sub">software-testing / sesi-03</div>
+    <div class="brand-name">Jenis-jenis Testing</div>
+
+    <div class="nav-label">Isi Halaman</div>
+    <a class="toc-link" href="#pendahuluan">Pendahuluan</a>
+    <a class="toc-link" href="#tujuan">Tujuan Pembelajaran</a>
+    <a class="toc-link" href="#fungsional">3.1 Functional vs Non-Functional</a>
+    <a class="toc-link" href="#subnonfunc">3.2 Sub-jenis Non-Functional</a>
+    <a class="toc-link" href="#manualotomatis">3.3 Manual vs Otomatis</a>
+    <a class="toc-link" href="#piramida">3.4 Piramida Automation Testing</a>
+    <a class="toc-link" href="#matriks">3.5 Matriks Klasifikasi Testing</a>
+    <a class="toc-link" href="#studikasus">Latihan Klasifikasi Skenario</a>
+    <a class="toc-link" href="#rangkuman">Rangkuman</a>
+    <a class="toc-link" href="#latihan">Latihan Pemahaman</a>
+    <a class="toc-link" href="#tugas">Tugas Sesi 3</a>
+    <a class="toc-link" href="#referensi">Referensi</a>
+  </nav>
+
+  <main>
+    <div class="wrap">
+
+      <section id="pendahuluan">
+        <div class="eyebrow">sesi-03 / 14</div>
+        <h1>Jenis-jenis Testing</h1>
+        <p class="lead">Testing bukan aktivitas tunggal — ia terbagi dalam beberapa sumbu klasifikasi yang saling independen. Sesi ini membangun peta klasifikasi yang akan dipakai untuk memahami hampir seluruh materi setelahnya.</p>
+        <div class="meta-row">
+          <span class="meta-chip">⏱ 50 menit</span>
+          <span class="meta-chip">🎯 CPMK-1, CPMK-2</span>
+          <span class="meta-chip">📖 3 referensi utama</span>
+        </div>
+      </section>
+
+      <section id="tujuan">
+        <h2>Tujuan Pembelajaran</h2>
+        <p class="sec-desc">Setelah mengikuti sesi ini, mahasiswa mampu:</p>
+        <div class="card">
+          <ul class="obj-list">
+            <li><span class="check">✓</span> Membedakan Functional Testing dan Non-Functional Testing beserta contoh masing-masing.</li>
+            <li><span class="check">✓</span> Menjelaskan sub-jenis Non-Functional Testing (performance, usability, security, reliability, compatibility) dan mengaitkannya dengan karakteristik ISO/IEC 25010 dari Sesi 2.</li>
+            <li><span class="check">✓</span> Membedakan Manual Testing dan Automated Testing beserta kelebihan-kekurangannya.</li>
+            <li><span class="check">✓</span> Menjelaskan konsep Automation Testing Pyramid dan alasan di baliknya.</li>
+            <li><span class="check">✓</span> Mengklasifikasikan skenario testing nyata ke dalam kombinasi keempat sumbu (functional/non-functional × manual/otomatis).</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="fungsional">
+        <div class="eyebrow">3.1</div>
+        <h2>Functional Testing vs Non-Functional Testing</h2>
+        <p>Ini adalah sumbu klasifikasi paling mendasar dalam testing — membedakan <b>apa yang dilakukan sistem</b> dari <b>seberapa baik sistem melakukannya</b>.</p>
+
+        <div class="fnf-grid">
+          <div class="fnf-card func">
+            <h4>Functional Testing</h4>
+            <div class="fnf-question">"Apakah fitur ini bekerja sesuai spesifikasi?"</div>
+            <p style="font-size:13px; margin:0;">Menguji <b>apa yang dilakukan</b> sistem — fitur, fungsi bisnis, alur kerja. Berbasis input-proses-output, biasanya diuji dengan pendekatan black-box.</p>
+            <ul>
+              <li>Login berhasil dengan kredensial benar</li>
+              <li>Perhitungan total belanja sudah akurat</li>
+              <li>Validasi form menolak input tidak valid</li>
+            </ul>
+          </div>
+          <div class="fnf-card nonfunc">
+            <h4>Non-Functional Testing</h4>
+            <div class="fnf-question">"Seberapa baik sistem menjalankan fungsi tersebut?"</div>
+            <p style="font-size:13px; margin:0;">Menguji <b>kualitas menjalankan</b> fungsi — kecepatan, keamanan, kemudahan pakai, daya tahan. Berkaitan langsung dengan 7 karakteristik kualitas ISO/IEC 25010 (Sesi 2) selain Functional Suitability.</p>
+            <ul>
+              <li>Halaman termuat dalam &lt;2 detik</li>
+              <li>Sistem tahan 1000 pengguna bersamaan</li>
+              <li>Data pengguna terenkripsi dengan aman</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout tip">
+          <span class="callout-icon">✓</span>
+          <span><b>Cara cepat membedakan:</b> jika pertanyaannya "apakah fitur X ADA dan BEKERJA?" → functional. Jika pertanyaannya "apakah fitur X CUKUP CEPAT/AMAN/MUDAH DIPAKAI?" → non-functional.</span>
+        </div>
+      </section>
+
+      <section id="subnonfunc">
+        <div class="eyebrow">3.2</div>
+        <h2>Sub-jenis Non-Functional Testing</h2>
+        <p>Non-Functional Testing bukan satu jenis tunggal — ia terbagi menjadi beberapa sub-jenis, masing-masing memetakan langsung ke karakteristik ISO/IEC 25010 yang sudah dibahas di Sesi 2.</p>
+
+        <div class="card">
+          <table style="width:100%; border-collapse:collapse; font-size:13.5px;">
+            <tr>
+              <th style="border:1px solid var(--rule); padding:10px 13px; text-align:left; background:var(--paper); font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); text-transform:uppercase;">Sub-jenis Testing</th>
+              <th style="border:1px solid var(--rule); padding:10px 13px; text-align:left; background:var(--paper); font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); text-transform:uppercase;">Karakteristik ISO/IEC 25010</th>
+              <th style="border:1px solid var(--rule); padding:10px 13px; text-align:left; background:var(--paper); font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); text-transform:uppercase;">Contoh Pertanyaan Uji</th>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--rule); padding:10px 13px;">Performance Testing</td>
+              <td style="border:1px solid var(--rule); padding:10px 13px;">Performance Efficiency</td>
+              <td style="border:1px solid var(--rule); padding:10px 13px; color:var(--ink-soft);">Berapa waktu respons di bawah beban tinggi? (dibahas mendalam di Sesi 13)</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--rule); padding:10px 13px;">Usability Testing</td>
+              <td style="border:1px solid var(--rule); padding:10px 13px;">Usability</td>
+              <td style="border:1px solid var(--rule); padding:10px 13px; color:var(--ink-soft);">Bisakah pengguna baru menyelesaikan tugas tanpa panduan?</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--rule); padding:10px 13px;">Security Testing</td>
+              <td style="border:1px solid var(--rule); padding:10px 13px;">Security</td>
+              <td style="border:1px solid var(--rule); padding:10px 13px; color:var(--ink-soft);">Apakah sistem tahan terhadap upaya akses tidak sah?</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--rule); padding:10px 13px;">Reliability Testing</td>
+              <td style="border:1px solid var(--rule); padding:10px 13px;">Reliability</td>
+              <td style="border:1px solid var(--rule); padding:10px 13px; color:var(--ink-soft);">Apakah sistem tetap stabil dijalankan terus-menerus selama 72 jam?</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--rule); padding:10px 13px;">Compatibility Testing</td>
+              <td style="border:1px solid var(--rule); padding:10px 13px;">Compatibility</td>
+              <td style="border:1px solid var(--rule); padding:10px 13px; color:var(--ink-soft);">Apakah tampilan tetap benar di berbagai browser/device?</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="callout info">
+          <span class="callout-icon">💡</span>
+          <span>Perhatikan bahwa tabel ini secara langsung menyambung ke model kualitas ISO/IEC 25010 di Sesi 2 — non-functional testing pada dasarnya adalah <b>cara mengukur</b> apakah 7 karakteristik kualitas non-fungsional tersebut benar-benar terpenuhi.</span>
+        </div>
+      </section>
+
+      <section id="manualotomatis">
+        <div class="eyebrow">3.3</div>
+        <h2>Manual Testing vs Automated Testing</h2>
+        <p>Sumbu klasifikasi kedua ini independen dari functional/non-functional — keduanya bisa diuji baik secara manual maupun otomatis. Perbedaannya terletak pada <b>siapa/apa yang mengeksekusi</b> test case.</p>
+
+        <div class="ma-grid">
+          <div class="ma-card manual">
+            <h4>Manual Testing</h4>
+            <p style="font-size:13px; margin:0;">Tester menjalankan test case secara langsung, mengamati hasil dengan mata sendiri, dan membandingkannya dengan hasil yang diharapkan.</p>
+            <div class="pro-con">
+              <div><div class="label">Kelebihan</div><ul><li>Fleksibel untuk kasus eksploratif</li><li>Cocok untuk usability testing</li><li>Tidak perlu investasi tools/script</li></ul></div>
+              <div><div class="label">Kekurangan</div><ul><li>Lambat &amp; melelahkan untuk repetitif</li><li>Rawan human error</li><li>Sulit di-scale untuk regresi besar</li></ul></div>
+            </div>
+          </div>
+          <div class="ma-card auto">
+            <h4>Automated Testing</h4>
+            <p style="font-size:13px; margin:0;">Test case dijalankan oleh script/tools (mis. Selenium, JUnit, Cypress) tanpa intervensi manual saat eksekusi.</p>
+            <div class="pro-con">
+              <div><div class="label">Kelebihan</div><ul><li>Cepat &amp; konsisten untuk repetitif</li><li>Ideal untuk regression testing</li><li>Bisa dijalankan otomatis di CI/CD</li></ul></div>
+              <div><div class="label">Kekurangan</div><ul><li>Butuh investasi waktu menulis script</li><li>Perlu maintenance saat UI berubah</li><li>Kurang cocok untuk exploratory/usability</li></ul></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span><b>Miskonsepsi umum:</b> "automated testing selalu lebih baik dari manual testing". Faktanya keduanya saling melengkapi — automation unggul untuk regression testing berulang, sementara manual (khususnya exploratory testing) unggul untuk menemukan masalah usability atau skenario tak terduga yang script tidak pernah dirancang untuk mendeteksinya.</span>
+        </div>
+      </section>
+
+      <section id="piramida">
+        <div class="eyebrow">3.4</div>
+        <h2>Automation Testing Pyramid</h2>
+        <p>Ketika sebuah tim memutuskan mengotomasi testing-nya, muncul pertanyaan: pada level mana sebaiknya proporsi automation paling besar? Jawabannya digambarkan lewat <b>Testing Pyramid</b>.</p>
+
+        <div class="card">
+          <div class="pyramid">
+            <div class="pyr-row e2e">E2E / UI Testing<span class="pyr-label">paling lambat &amp; rapuh — porsi paling sedikit</span></div>
+            <div class="pyr-row integ">Integration Testing<span class="pyr-label">porsi menengah</span></div>
+            <div class="pyr-row unit">Unit Testing<span class="pyr-label">paling cepat &amp; stabil — porsi paling besar</span></div>
+          </div>
+        </div>
+
+        <p style="margin-top:16px;">Semakin ke atas piramida, test semakin lambat dieksekusi, semakin rapuh (mudah gagal karena perubahan kecil pada UI), dan semakin mahal untuk dipelihara — sehingga porsinya harus semakin sedikit. Semakin ke bawah, test semakin cepat, stabil, dan murah untuk dijalankan berulang kali — sehingga sebaiknya menjadi porsi terbesar dari total automation suite.</p>
+
+        <div class="callout tip">
+          <span class="callout-icon">✓</span>
+          <span>Konsep piramida ini akan dipakai kembali secara konkret di Sesi 9–10 (Unit Testing dengan JUnit/PyTest) dan Sesi 12 (Automated Testing dengan Selenium/Cypress) sebagai dasar strategi automation.</span>
+        </div>
+      </section>
+
+      <section id="matriks">
+        <div class="eyebrow">3.5</div>
+        <h2>Matriks Klasifikasi: Menggabungkan Kedua Sumbu</h2>
+        <p>Karena functional/non-functional dan manual/otomatis adalah dua sumbu yang independen, keduanya bisa dikombinasikan menjadi matriks 2×2 — setiap skenario testing nyata pasti masuk ke salah satu dari empat kuadran ini.</p>
+
+        <div class="card">
+          <div class="matrix">
+            <div class="mcell mhead"></div>
+            <div class="mcell mhead">Manual</div>
+            <div class="mcell mhead">Otomatis</div>
+
+            <div class="mcell mrowlabel">Functional</div>
+            <div class="mcell">Tester mencoba fitur checkout secara langsung di aplikasi.
+              <div class="mexample">Contoh: exploratory testing fitur baru</div>
+            </div>
+            <div class="mcell">Script otomatis menjalankan skenario login berulang kali.
+              <div class="mexample">Contoh: regression suite dengan Selenium</div>
+            </div>
+
+            <div class="mcell mrowlabel">Non-Functional</div>
+            <div class="mcell">Tester menilai kemudahan navigasi aplikasi bagi pengguna baru.
+              <div class="mexample">Contoh: usability testing dengan observasi langsung</div>
+            </div>
+            <div class="mcell">Tools mensimulasikan 1000 pengguna bersamaan mengakses server.
+              <div class="mexample">Contoh: load testing dengan JMeter</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="studikasus">
+        <h2>Latihan Klasifikasi Skenario</h2>
+        <p class="sec-desc">Kerjakan berpasangan. Untuk setiap skenario berikut, tentukan: (a) Functional atau Non-Functional, dan (b) cocok diuji Manual atau Otomatis — beserta alasannya.</p>
+
+        <div class="classify-card">
+          <div class="scenario"><b>Skenario 1:</b> Memastikan tombol "Beli Sekarang" mengarahkan pengguna ke halaman pembayaran yang benar.</div>
+          <div class="classify-tags"><span>Functional / Non-Functional?</span><span>Manual / Otomatis?</span></div>
+        </div>
+        <div class="classify-card">
+          <div class="scenario"><b>Skenario 2:</b> Menilai apakah pengguna lanjut usia kesulitan menemukan menu pengaturan akun.</div>
+          <div class="classify-tags"><span>Functional / Non-Functional?</span><span>Manual / Otomatis?</span></div>
+        </div>
+        <div class="classify-card">
+          <div class="scenario"><b>Skenario 3:</b> Menjalankan 200 test case regresi setiap kali ada commit baru ke repository.</div>
+          <div class="classify-tags"><span>Functional / Non-Functional?</span><span>Manual / Otomatis?</span></div>
+        </div>
+        <div class="classify-card">
+          <div class="scenario"><b>Skenario 4:</b> Mengukur apakah aplikasi tetap berjalan lancar saat 5000 pengguna mengakses bersamaan saat flash sale.</div>
+          <div class="classify-tags"><span>Functional / Non-Functional?</span><span>Manual / Otomatis?</span></div>
+        </div>
+
+        <div class="callout info" style="margin-top:6px;">
+          <span class="callout-icon">📝</span>
+          <span>Diskusikan hasil klasifikasi Anda dengan pasangan, lalu bandingkan dengan kelas — asisten/dosen akan membahas jawaban dan alasan di akhir sesi.</span>
+        </div>
+      </section>
+
+      <section id="rangkuman">
+        <h2>Rangkuman</h2>
+        <ul class="summary-list">
+          <li><span>✓</span> Functional Testing menguji <i>apa yang dilakukan</i> sistem; Non-Functional Testing menguji <i>seberapa baik</i> sistem melakukannya.</li>
+          <li><span>✓</span> Non-Functional Testing terbagi menjadi performance, usability, security, reliability, dan compatibility testing — masing-masing memetakan ke karakteristik ISO/IEC 25010.</li>
+          <li><span>✓</span> Manual Testing unggul untuk eksplorasi dan usability; Automated Testing unggul untuk regression testing yang repetitif.</li>
+          <li><span>✓</span> Automation Testing Pyramid merekomendasikan porsi terbesar automation di level Unit Testing, bukan di level UI/E2E.</li>
+          <li><span>✓</span> Functional/Non-Functional dan Manual/Otomatis adalah dua sumbu klasifikasi independen — setiap skenario testing nyata berada di salah satu dari empat kombinasi kuadran.</li>
+        </ul>
+      </section>
+
+      <section id="latihan">
+        <h2>Latihan Pemahaman Mandiri</h2>
+        <p class="sec-desc">Klik tiap soal untuk melihat kunci jawaban dan penjelasannya.</p>
+
+        <details>
+          <summary>1. Menguji apakah aplikasi tetap dapat digunakan setelah dijalankan non-stop selama 7 hari — termasuk sub-jenis non-functional testing apa?</summary>
+          <div class="answer"><b>Jawaban:</b> <b>Reliability Testing</b> — mengukur kemampuan sistem menjalankan fungsinya secara konsisten dalam periode waktu tertentu tanpa gagal.</div>
+        </details>
+
+        <details>
+          <summary>2. Mengapa exploratory testing sulit sepenuhnya digantikan oleh automated testing?</summary>
+          <div class="answer"><b>Jawaban:</b> Karena automated testing hanya menjalankan skenario yang sudah didefinisikan sebelumnya dalam script, sementara exploratory testing mengandalkan intuisi dan kreativitas tester untuk menemukan skenario tak terduga yang belum pernah dipikirkan siapa pun sebelumnya.</div>
+        </details>
+
+        <details>
+          <summary>3. Sebuah tim menghabiskan sebagian besar automation suite mereka pada UI/E2E testing, hanya sedikit unit test. Apa risiko dari strategi ini menurut Testing Pyramid?</summary>
+          <div class="answer"><b>Jawaban:</b> Test suite akan lambat dieksekusi, rapuh (mudah gagal akibat perubahan kecil pada tampilan), dan mahal untuk dipelihara — bertentangan dengan rekomendasi piramida yang menempatkan porsi terbesar pada unit testing yang cepat dan stabil.</div>
+        </details>
+
+        <details>
+          <summary>4. Skenario "memastikan data kartu kredit terenkripsi saat transmisi" termasuk kuadran mana pada matriks klasifikasi?</summary>
+          <div class="answer"><b>Jawaban:</b> <b>Non-Functional</b> (Security Testing) dan biasanya diuji secara <b>Otomatis</b> menggunakan tools security scanning, meski sebagian pengujian keamanan mendalam (mis. penetration testing) tetap memerlukan komponen manual oleh ahli keamanan.</div>
+        </details>
+      </section>
+
+      <section id="tugas">
+        <h2>Tugas Sesi 3</h2>
+        <div class="task-card">
+          <h3>Studi Kasus Klasifikasi Skenario Testing</h3>
+          <p>Anda diberikan 10 deskripsi skenario testing dari sebuah aplikasi perbankan digital (dokumen skenario akan dibagikan terpisah oleh dosen/asisten). Untuk setiap skenario, tentukan: (1) Functional atau Non-Functional, (2) jika non-functional, sub-jenis apa (performance/usability/security/reliability/compatibility), dan (3) apakah lebih cocok diuji Manual atau Otomatis beserta alasannya.</p>
+          <p style="color:#F2F1EA;">Jawaban disusun dalam bentuk tabel dengan kolom: No. Skenario | Functional/Non-Functional | Sub-jenis (jika ada) | Manual/Otomatis | Alasan Singkat.</p>
+
+          <table class="rubric-table">
+            <tr><th>Kriteria</th><th>Bobot</th></tr>
+            <tr><td>Ketepatan klasifikasi functional/non-functional</td><td>30%</td></tr>
+            <tr><td>Ketepatan identifikasi sub-jenis non-functional</td><td>25%</td></tr>
+            <tr><td>Ketepatan pemilihan manual/otomatis</td><td>25%</td></tr>
+            <tr><td>Kualitas alasan yang diberikan</td><td>20%</td></tr>
+          </table>
+
+          <span class="deadline-tag">⏳ Dikumpulkan sebelum Sesi 4 dimulai</span>
+        </div>
+      </section>
+
+      <section id="referensi">
+        <h2>Referensi Sesi Ini</h2>
+        <div class="card">
+          <ul class="ref-list">
+            <li><b>Black, R., Graham, D., van Veenendaal, E.</b> — Foundations of Software Testing: ISTQB Certification, bagian mengenai jenis dan level testing.</li>
+            <li><b>Jorgensen, P.C.</b> — Software Testing: A Craftsman's Approach, bab mengenai klasifikasi teknik testing.</li>
+            <li><b>Fowler, M.</b> — "TestPyramid" (martinfowler.com) — artikel rujukan standar mengenai konsep Automation Testing Pyramid.</li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="nav-next">
+        <a href="sesi2.html">← Sesi 2: Manajemen Kualitas PL</a>
+        <a class="to-next" href="index.html#silabus">Sesi 4: Test Levels &amp; Maintenance Testing →</a>
+      </div>
+
+      <footer>
+        <span>Mata Kuliah Software Testing · 3 SKS</span>
+        <span>Dosen Pengampu: Philipus Suryo Subandoro</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>
