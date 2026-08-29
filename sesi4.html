@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sesi 4 — Test Levels dan Maintenance Testing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAFAF7;
+    --paper-raised:#FFFFFF;
+    --ink:#1A1D29;
+    --ink-soft:#565B6E;
+    --rule:#E1DED4;
+    --pass:#0F6B5C;
+    --pass-bg:#E9F3EF;
+    --info:#2C5F8A;
+    --info-bg:#EAF1F7;
+    --amber:#A9761E;
+    --amber-bg:#FBF2E1;
+    --red:#B5432E;
+    --red-bg:#FBEDE9;
+    --mono-bg:#1A1D29;
+    --mono-text:#D9F2E6;
+    --sidebar-w:250px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+
+  .shell{display:flex; min-height:100vh;}
+
+  .sidebar{
+    width:var(--sidebar-w); flex-shrink:0;
+    background:var(--ink); color:#EDEBE0;
+    padding:32px 22px 40px;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .back-link{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'IBM Plex Mono', monospace; font-size:12px;
+    color:#8FE0C6; text-decoration:none; margin-bottom:26px;
+  }
+  .back-link:hover{text-decoration:underline;}
+  .brand-sub{
+    font-family:'IBM Plex Mono', monospace; font-size:11px;
+    color:#7C8093; margin-bottom:4px;
+  }
+  .brand-name{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:17px; color:#fff; margin-bottom:24px;
+  }
+  .nav-label{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.08em; color:#7C8093; margin-bottom:10px;
+  }
+  .toc-link{
+    display:block; font-size:13px; color:#C9C7BC; text-decoration:none;
+    padding:6px 0 6px 12px; border-left:2px solid #3A3D4A;
+    transition:all .15s;
+  }
+  .toc-link:hover{color:#fff; border-left-color:#4FE3B8;}
+
+  main{flex:1; min-width:0;}
+  .wrap{max-width:800px; margin:0 auto; padding:56px 32px 100px;}
+
+  section{margin-bottom:56px; scroll-margin-top:24px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--pass);
+    letter-spacing:.06em; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:"$"; color:var(--ink-soft);}
+  h1{
+    font-family:'Space Grotesk', sans-serif; font-size:36px; font-weight:700;
+    margin:0 0 14px; letter-spacing:-.01em; line-height:1.15;
+  }
+  h2{
+    font-family:'Space Grotesk', sans-serif; font-size:23px; font-weight:600; margin:0 0 6px;
+  }
+  h3{
+    font-family:'Space Grotesk', sans-serif; font-size:18px; font-weight:600; margin:26px 0 10px;
+  }
+  h4{font-size:15px; font-weight:600; margin:18px 0 8px;}
+  .lead{color:var(--ink-soft); font-size:16px; max-width:620px;}
+  .sec-desc{color:var(--ink-soft); font-size:14.5px; margin:0 0 20px;}
+  p{font-size:14.5px; margin:0 0 12px;}
+
+  .meta-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:20px;}
+  .meta-chip{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; background:var(--paper-raised);
+    border:1px solid var(--rule); padding:6px 12px; border-radius:100px; color:var(--ink-soft);
+  }
+
+  .card{
+    background:var(--paper-raised); border:1px solid var(--rule);
+    border-radius:12px; padding:22px 24px;
+  }
+
+  .obj-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .obj-list li{display:flex; gap:12px; align-items:flex-start; font-size:14.5px;}
+  .check{
+    flex-shrink:0; width:20px; height:20px; border-radius:5px; background:var(--pass-bg);
+    color:var(--pass); display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; margin-top:2px;
+  }
+
+  .callout{
+    display:flex; gap:12px; align-items:flex-start; border-radius:10px;
+    padding:14px 16px; font-size:14px; margin:16px 0;
+  }
+  .callout.info{background:var(--info-bg); border:1px solid #C7DBEA; color:#1E4560;}
+  .callout.tip{background:var(--pass-bg); border:1px solid #C9E4DA; color:#0C4F44;}
+  .callout.warn{background:var(--amber-bg); border:1px solid #ECD9B0; color:#6B4A0F;}
+  .callout b{font-weight:600;}
+  .callout-icon{font-size:16px; flex-shrink:0;}
+
+  /* 4 test levels stacked */
+  .level-list{list-style:none; margin:0; padding:0; display:grid; gap:0;}
+  .level-item{
+    display:grid; grid-template-columns:40px 1fr; gap:16px;
+    padding:20px 0; border-bottom:1px solid var(--rule);
+  }
+  .level-item:last-child{border-bottom:none;}
+  .level-num{
+    width:40px; height:40px; border-radius:10px; background:var(--ink); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono', monospace; font-size:14px; font-weight:500; flex-shrink:0;
+  }
+  .level-title{font-weight:600; font-size:16px; margin-bottom:4px;}
+  .level-desc{color:var(--ink-soft); font-size:14px; margin-bottom:8px;}
+  .level-meta{display:flex; gap:8px; flex-wrap:wrap;}
+  .level-meta span{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--pass);
+    background:var(--pass-bg); padding:3px 9px; border-radius:100px;
+  }
+
+  /* integration approach cards */
+  .approach-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  @media (max-width:680px){.approach-grid{grid-template-columns:1fr;}}
+  .approach-card{border:1px solid var(--rule); border-radius:10px; padding:16px 18px; background:var(--paper-raised);}
+  .approach-card h4{margin:0 0 6px; font-size:14px;}
+  .approach-card p{font-size:12.5px; color:var(--ink-soft); margin:0;}
+
+  /* acceptance types */
+  .accept-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  @media (max-width:680px){.accept-grid{grid-template-columns:1fr;}}
+  .accept-card{border-radius:10px; padding:16px 18px;}
+  .accept-card.alpha{background:var(--info-bg); border:1px solid #C7DBEA;}
+  .accept-card.beta{background:var(--pass-bg); border:1px solid #C9E4DA;}
+  .accept-card.uat{background:var(--amber-bg); border:1px solid #ECD9B0;}
+  .accept-card.contract{background:var(--red-bg); border:1px solid #F0C4B8;}
+  .accept-card h4{margin:0 0 6px; font-size:14px;}
+  .accept-card p{font-size:12.5px; margin:0; color:var(--ink);}
+
+  /* maintenance types 2x2 */
+  .maint-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  @media (max-width:680px){.maint-grid{grid-template-columns:1fr;}}
+  .maint-card{border:1px solid var(--rule); border-radius:10px; padding:16px 18px; background:var(--paper-raised);}
+  .maint-card .tag{
+    font-family:'IBM Plex Mono', monospace; font-size:10px; text-transform:uppercase;
+    letter-spacing:.03em; padding:2px 8px; border-radius:100px; margin-bottom:8px; display:inline-block;
+  }
+  .maint-card.corrective .tag{background:var(--red-bg); color:var(--red);}
+  .maint-card.adaptive .tag{background:var(--info-bg); color:var(--info);}
+  .maint-card.perfective .tag{background:var(--pass-bg); color:var(--pass);}
+  .maint-card.preventive .tag{background:var(--amber-bg); color:var(--amber);}
+  .maint-card h4{margin:0 0 6px; font-size:14px;}
+  .maint-card p{font-size:12.5px; color:var(--ink-soft); margin:0;}
+
+  /* impact analysis flow */
+  .flow-list{list-style:none; margin:0; padding:0; display:grid; gap:0;}
+  .flow-item{
+    display:grid; grid-template-columns:28px 1fr; gap:14px;
+    padding:12px 0; border-bottom:1px dashed var(--rule);
+  }
+  .flow-item:last-child{border-bottom:none;}
+  .flow-num{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--pass); font-weight:600;
+  }
+  .flow-title{font-weight:600; font-size:13.5px;}
+  .flow-desc{color:var(--ink-soft); font-size:13px;}
+
+  details{
+    border:1px solid var(--rule); border-radius:10px; padding:14px 18px; margin-bottom:10px; background:var(--paper-raised);
+  }
+  summary{
+    cursor:pointer; font-size:14.5px; font-weight:500; list-style:none;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"+"; color:var(--pass); font-family:'IBM Plex Mono', monospace; font-size:16px;}
+  details[open] summary::after{content:"–";}
+  details[open] summary{margin-bottom:10px;}
+  .answer{font-size:13.5px; color:var(--ink-soft); border-top:1px solid var(--rule); padding-top:10px;}
+  .answer b{color:var(--pass);}
+
+  .case-card{border:1px solid var(--rule); border-radius:12px; padding:20px 22px; background:var(--paper-raised);}
+  .case-card .case-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--info);
+    background:var(--info-bg); display:inline-block; padding:3px 9px; border-radius:100px; margin-bottom:10px;
+  }
+  .case-card p{font-size:13.5px; color:var(--ink-soft); margin-bottom:8px;}
+  .case-card .prompt-q{font-size:13.5px; color:var(--ink); font-weight:500; margin-top:12px;}
+  .case-card ul{font-size:13.5px; color:var(--ink-soft); margin:8px 0;}
+
+  .task-card{background:var(--ink); color:#F2F1EA; border-radius:12px; padding:26px 28px;}
+  .task-card h3{color:#fff; margin-top:0;}
+  .task-card p{color:#D8D6CC; font-size:14px;}
+  .rubric-table{width:100%; border-collapse:collapse; margin-top:14px; font-size:13px;}
+  .rubric-table th, .rubric-table td{
+    border:1px solid rgba(255,255,255,.15); padding:9px 12px; text-align:left; color:#D8D6CC;
+  }
+  .rubric-table th{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:#8FE0C6;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .deadline-tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:12px;
+    background:rgba(255,255,255,.1); padding:5px 10px; border-radius:100px; color:#F2F1EA; margin-top:16px;
+  }
+
+  .ref-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .ref-list li{font-size:13.5px; color:var(--ink-soft); padding-left:18px; position:relative;}
+  .ref-list li::before{content:"—"; position:absolute; left:0; color:var(--pass);}
+  .ref-list b{color:var(--ink);}
+
+  .summary-list{list-style:none; margin:0; padding:0; display:grid; gap:8px;}
+  .summary-list li{
+    display:flex; gap:10px; align-items:flex-start; font-size:14px;
+    background:var(--pass-bg); padding:10px 14px; border-radius:8px; color:#0C4F44;
+  }
+
+  footer{
+    border-top:1px solid var(--rule); padding-top:24px; margin-top:20px;
+    color:var(--ink-soft); font-size:13px; display:flex; justify-content:space-between;
+    flex-wrap:wrap; gap:8px;
+  }
+  .nav-next{
+    display:flex; justify-content:space-between; align-items:center; gap:16px;
+    border:1px solid var(--rule); border-radius:12px; padding:18px 22px; margin-top:40px;
+  }
+  .nav-next a{text-decoration:none; font-size:13.5px; color:var(--ink-soft);}
+  .nav-next .to-next{color:var(--pass); font-weight:500;}
+
+  @media (max-width:860px){
+    .sidebar{display:none;}
+    .wrap{padding:40px 20px 80px;}
+    h1{font-size:28px;}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <nav class="sidebar">
+    <a class="back-link" href="index.html">← Kembali ke Beranda</a>
+    <div class="brand-sub">software-testing / sesi-04</div>
+    <div class="brand-name">Test Levels &amp; Maintenance</div>
+
+    <div class="nav-label">Isi Halaman</div>
+    <a class="toc-link" href="#pendahuluan">Pendahuluan</a>
+    <a class="toc-link" href="#tujuan">Tujuan Pembelajaran</a>
+    <a class="toc-link" href="#level">4.1 Empat Level Testing</a>
+    <a class="toc-link" href="#integrasi">4.2 Pendekatan Integration Testing</a>
+    <a class="toc-link" href="#acceptance">4.3 Jenis Acceptance Testing</a>
+    <a class="toc-link" href="#maintenance">4.4 Maintenance Testing</a>
+    <a class="toc-link" href="#impact">4.5 Impact Analysis &amp; Regression</a>
+    <a class="toc-link" href="#studikasus">Studi Kasus Diskusi</a>
+    <a class="toc-link" href="#rangkuman">Rangkuman</a>
+    <a class="toc-link" href="#latihan">Latihan Pemahaman</a>
+    <a class="toc-link" href="#tugas">Tugas Sesi 4</a>
+    <a class="toc-link" href="#referensi">Referensi</a>
+  </nav>
+
+  <main>
+    <div class="wrap">
+
+      <section id="pendahuluan">
+        <div class="eyebrow">sesi-04 / 14</div>
+        <h1>Test Levels dan Maintenance Testing</h1>
+        <p class="lead">Setelah memahami jenis-jenis testing di Sesi 3, sesi ini membahas <i>tingkatan</i> di mana testing dilakukan — dari modul terkecil hingga sistem penuh — dan apa yang terjadi pada testing setelah perangkat lunak dirilis ke pengguna.</p>
+        <div class="meta-row">
+          <span class="meta-chip">⏱ 50 menit</span>
+          <span class="meta-chip">🎯 CPMK-1, CPMK-2</span>
+          <span class="meta-chip">📖 3 referensi utama</span>
+        </div>
+      </section>
+
+      <section id="tujuan">
+        <h2>Tujuan Pembelajaran</h2>
+        <p class="sec-desc">Setelah mengikuti sesi ini, mahasiswa mampu:</p>
+        <div class="card">
+          <ul class="obj-list">
+            <li><span class="check">✓</span> Menjelaskan empat level testing (Unit, Integration, System, Acceptance) beserta tujuan dan pelaksananya masing-masing.</li>
+            <li><span class="check">✓</span> Membandingkan pendekatan integration testing: Big Bang, Top-down, Bottom-up, dan Sandwich/Hybrid.</li>
+            <li><span class="check">✓</span> Membedakan jenis-jenis acceptance testing: Alpha, Beta, UAT, dan Contract/Regulation Acceptance.</li>
+            <li><span class="check">✓</span> Menjelaskan konsep Maintenance Testing dan empat kategori pemeliharaan perangkat lunak.</li>
+            <li><span class="check">✓</span> Menerapkan impact analysis untuk menentukan cakupan regression testing yang diperlukan setelah perubahan kode.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="level">
+        <div class="eyebrow">4.1</div>
+        <h2>Empat Level Testing</h2>
+        <p>Test level menggambarkan pada <b>lingkup apa</b> pengujian dilakukan — mulai dari satu unit kode terkecil hingga keseluruhan sistem dari sudut pandang pengguna. Konsep ini menyambung langsung dengan V-Model yang sudah dibahas di Sesi 1.</p>
+
+        <div class="card">
+          <ul class="level-list">
+            <li class="level-item">
+              <span class="level-num">1</span>
+              <div>
+                <div class="level-title">Unit Testing</div>
+                <div class="level-desc">Menguji unit/modul kode terkecil (fungsi, method, class) secara terisolasi dari komponen lain. Biasanya dilakukan oleh developer yang menulis kode tersebut.</div>
+                <div class="level-meta"><span>Pelaksana: Developer</span><span>Fokus: Logika internal modul</span><span>Tools: JUnit, PyTest</span></div>
+              </div>
+            </li>
+            <li class="level-item">
+              <span class="level-num">2</span>
+              <div>
+                <div class="level-title">Integration Testing</div>
+                <div class="level-desc">Menguji interaksi antara dua atau lebih modul/komponen yang sudah lolos unit testing, untuk memastikan mereka bekerja sama dengan benar.</div>
+                <div class="level-meta"><span>Pelaksana: Developer/Tester</span><span>Fokus: Interface &amp; komunikasi antar modul</span><span>Tools: Postman, TestNG</span></div>
+              </div>
+            </li>
+            <li class="level-item">
+              <span class="level-num">3</span>
+              <div>
+                <div class="level-title">System Testing</div>
+                <div class="level-desc">Menguji sistem secara utuh dan lengkap sebagai satu kesatuan, mencakup baik functional maupun non-functional testing, dalam lingkungan yang menyerupai produksi.</div>
+                <div class="level-meta"><span>Pelaksana: Tim QA independen</span><span>Fokus: Perilaku sistem end-to-end</span><span>Tools: Selenium, JMeter</span></div>
+              </div>
+            </li>
+            <li class="level-item">
+              <span class="level-num">4</span>
+              <div>
+                <div class="level-title">Acceptance Testing</div>
+                <div class="level-desc">Menguji apakah sistem memenuhi kebutuhan bisnis dan siap digunakan oleh pengguna akhir — level testing terakhir sebelum rilis, sering melibatkan pengguna/klien langsung.</div>
+                <div class="level-meta"><span>Pelaksana: Pengguna/Klien/QA</span><span>Fokus: Kesesuaian kebutuhan bisnis</span><span>Tools: Skenario UAT manual</span></div>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="callout info">
+          <span class="callout-icon">💡</span>
+          <span><b>Menyambung ke Sesi 1:</b> keempat level ini persis sama dengan yang dipetakan pada diagram V-Model — Unit Testing berpasangan dengan Detailed Design, Integration Testing dengan Architecture Design, System Testing dengan System Design, dan Acceptance Testing dengan Business Requirement Analysis.</span>
+        </div>
+      </section>
+
+      <section id="integrasi">
+        <div class="eyebrow">4.2</div>
+        <h2>Pendekatan Integration Testing</h2>
+        <p>Ketika modul-modul mulai digabungkan, ada beberapa strategi yang bisa dipilih tim untuk menentukan <b>urutan</b> penggabungan dan pengujiannya.</p>
+
+        <div class="approach-grid">
+          <div class="approach-card">
+            <h4>Big Bang</h4>
+            <p>Seluruh modul digabungkan sekaligus lalu diuji bersamaan. Sederhana tapi sulit melacak sumber kegagalan karena banyak modul diuji dalam satu waktu.</p>
+          </div>
+          <div class="approach-card">
+            <h4>Top-Down</h4>
+            <p>Dimulai dari modul level atas (kontrol utama), modul bawah yang belum jadi digantikan dengan "stub" (modul tiruan sederhana).</p>
+          </div>
+          <div class="approach-card">
+            <h4>Bottom-Up</h4>
+            <p>Dimulai dari modul level bawah (paling detail), modul atas yang belum jadi digantikan dengan "driver" (pemanggil tiruan).</p>
+          </div>
+          <div class="approach-card">
+            <h4>Sandwich / Hybrid</h4>
+            <p>Menggabungkan Top-Down dan Bottom-Up secara bersamaan dari dua arah, bertemu di tengah — mempercepat proses namun butuh koordinasi lebih kompleks.</p>
+          </div>
+        </div>
+
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span><b>Istilah penting:</b> <i>stub</i> adalah modul tiruan yang menggantikan modul bawahan yang dipanggil (dipakai pada pendekatan Top-Down), sedangkan <i>driver</i> adalah modul tiruan yang menggantikan modul atasan pemanggil (dipakai pada pendekatan Bottom-Up). Keduanya sering tertukar dalam soal ujian.</span>
+        </div>
+      </section>
+
+      <section id="acceptance">
+        <div class="eyebrow">4.3</div>
+        <h2>Jenis-jenis Acceptance Testing</h2>
+        <p>Acceptance Testing sendiri terbagi menjadi beberapa jenis tergantung siapa yang melakukan dan di lingkungan seperti apa pengujian berlangsung.</p>
+
+        <div class="accept-grid">
+          <div class="accept-card alpha">
+            <h4>Alpha Testing</h4>
+            <p>Dilakukan oleh tim internal perusahaan (bukan pengguna asli) di lingkungan pengembangan, sebelum produk dirilis ke pihak luar.</p>
+          </div>
+          <div class="accept-card beta">
+            <h4>Beta Testing</h4>
+            <p>Dilakukan oleh sekelompok pengguna asli di luar perusahaan, di lingkungan nyata mereka sendiri, sebelum rilis resmi ke publik.</p>
+          </div>
+          <div class="accept-card uat">
+            <h4>User Acceptance Testing (UAT)</h4>
+            <p>Dilakukan oleh klien/pengguna bisnis untuk memvalidasi bahwa sistem memenuhi kebutuhan yang telah disepakati dalam kontrak/requirement.</p>
+          </div>
+          <div class="accept-card contract">
+            <h4>Contract / Regulation Acceptance</h4>
+            <p>Memastikan sistem memenuhi kriteria yang tercantum dalam kontrak formal atau memenuhi regulasi/standar hukum yang berlaku (mis. sektor perbankan, kesehatan).</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="maintenance">
+        <div class="eyebrow">4.4</div>
+        <h2>Maintenance Testing</h2>
+        <p>Siklus hidup perangkat lunak tidak berhenti setelah dirilis (ingat kembali tahap ke-6 SDLC di Sesi 1). Setiap perubahan pada sistem yang sudah berjalan di produksi — sekecil apa pun — memerlukan pengujian ulang, yang disebut <b>Maintenance Testing</b>.</p>
+
+        <h4>Empat Kategori Pemeliharaan Perangkat Lunak</h4>
+        <div class="maint-grid">
+          <div class="maint-card corrective">
+            <span class="tag">Corrective</span>
+            <h4>Pemeliharaan Korektif</h4>
+            <p>Memperbaiki bug/defect yang ditemukan setelah sistem berjalan di produksi. Testing yang menyertainya berfokus memastikan bug benar-benar teratasi tanpa menimbulkan bug baru.</p>
+          </div>
+          <div class="maint-card adaptive">
+            <span class="tag">Adaptive</span>
+            <h4>Pemeliharaan Adaptif</h4>
+            <p>Menyesuaikan sistem terhadap perubahan lingkungan eksternal — versi OS baru, perubahan API pihak ketiga, migrasi server.</p>
+          </div>
+          <div class="maint-card perfective">
+            <span class="tag">Perfective</span>
+            <h4>Pemeliharaan Perfektif</h4>
+            <p>Meningkatkan performa atau menambah fitur baru berdasarkan permintaan pengguna, meski sistem sebelumnya sudah berjalan normal.</p>
+          </div>
+          <div class="maint-card preventive">
+            <span class="tag">Preventive</span>
+            <h4>Pemeliharaan Preventif</h4>
+            <p>Melakukan perbaikan struktur kode (refactoring) untuk mencegah potensi masalah di masa depan, tanpa mengubah perilaku fungsional sistem.</p>
+          </div>
+        </div>
+
+        <div class="callout tip">
+          <span class="callout-icon">✓</span>
+          <span><b>Poin kunci:</b> keempat jenis pemeliharaan ini sama-sama membutuhkan testing — namun cakupan dan strategi pengujiannya berbeda. Pemeliharaan korektif butuh fokus pada area bug yang diperbaiki, sementara pemeliharaan adaptif/perfektif/preventif sering membutuhkan <b>regression testing</b> yang lebih luas karena berpotensi memengaruhi bagian sistem yang sebelumnya sudah berjalan baik.</span>
+        </div>
+      </section>
+
+      <section id="impact">
+        <div class="eyebrow">4.5</div>
+        <h2>Impact Analysis dan Regression Testing</h2>
+        <p>Pertanyaan kunci dalam maintenance testing: <b>"Kalau saya mengubah bagian A, bagian mana lagi yang berisiko terdampak?"</b> Menjawab pertanyaan ini disebut <b>Impact Analysis</b> — langkah wajib sebelum menentukan cakupan regression testing.</p>
+
+        <div class="card">
+          <ul class="flow-list">
+            <li class="flow-item">
+              <span class="flow-num">01</span>
+              <div>
+                <div class="flow-title">Identifikasi perubahan</div>
+                <div class="flow-desc">Tentukan modul/fungsi apa saja yang benar-benar diubah dalam perbaikan/fitur baru ini.</div>
+              </div>
+            </li>
+            <li class="flow-item">
+              <span class="flow-num">02</span>
+              <div>
+                <div class="flow-title">Telusuri dependensi</div>
+                <div class="flow-desc">Cari modul lain yang bergantung pada atau dipanggil oleh modul yang berubah (analisis dependency/call graph).</div>
+              </div>
+            </li>
+            <li class="flow-item">
+              <span class="flow-num">03</span>
+              <div>
+                <div class="flow-title">Tentukan cakupan regression</div>
+                <div class="flow-desc">Pilih test case yang relevan dengan area terdampak — bisa berupa regression penuh (retest-all) atau regression selektif (hanya area terdampak).</div>
+              </div>
+            </li>
+            <li class="flow-item">
+              <span class="flow-num">04</span>
+              <div>
+                <div class="flow-title">Eksekusi &amp; verifikasi</div>
+                <div class="flow-desc">Jalankan test case terpilih untuk memastikan perubahan tidak merusak fungsi yang sebelumnya sudah berjalan baik.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span><b>Trade-off praktis:</b> regression testing penuh (retest-all) paling aman tapi paling mahal dan lambat, sementara regression selektif lebih cepat namun berisiko melewatkan efek samping yang tidak terduga jika impact analysis kurang teliti. Automated regression suite (akan dibahas di Sesi 12) sangat membantu menekan trade-off ini.</span>
+        </div>
+      </section>
+
+      <section id="studikasus">
+        <h2>Studi Kasus Diskusi Kelas</h2>
+        <p class="sec-desc">Diskusi kelompok kecil (4–5 orang), 10 menit diskusi + 2 menit presentasi per kelompok.</p>
+        <div class="case-card">
+          <span class="case-tag">Kasus Diskusi</span>
+          <h4 style="margin-top:0;">Perubahan Kecil, Dampak Besar</h4>
+          <p>Sebuah aplikasi perbankan digital mengubah format nomor rekening dari 10 digit menjadi 12 digit untuk mendukung ekspansi cabang baru. Perubahan ini terlihat sederhana — hanya mengubah validasi panjang input di form transfer.</p>
+          <ul>
+            <li>Modul/fitur apa saja yang berpotensi terdampak selain form transfer itu sendiri? (Pertimbangkan: riwayat transaksi, notifikasi, laporan, integrasi API pihak ketiga)</li>
+            <li>Level testing mana saja yang perlu dijalankan ulang: Unit, Integration, System, atau Acceptance? Jelaskan alasannya.</li>
+            <li>Termasuk kategori pemeliharaan apa perubahan ini: Corrective, Adaptive, Perfective, atau Preventive?</li>
+          </ul>
+          <p class="prompt-q">Diskusikan dan siapkan jawaban kelompok untuk dipresentasikan singkat.</p>
+        </div>
+      </section>
+
+      <section id="rangkuman">
+        <h2>Rangkuman</h2>
+        <ul class="summary-list">
+          <li><span>✓</span> Empat level testing — Unit, Integration, System, Acceptance — masing-masing punya lingkup, pelaksana, dan tujuan berbeda, dan berpasangan langsung dengan tahap development pada V-Model.</li>
+          <li><span>✓</span> Integration testing punya empat pendekatan: Big Bang, Top-Down (pakai stub), Bottom-Up (pakai driver), dan Sandwich/Hybrid.</li>
+          <li><span>✓</span> Acceptance testing terbagi menjadi Alpha, Beta, UAT, dan Contract/Regulation Acceptance — dibedakan dari siapa yang menguji dan konteksnya.</li>
+          <li><span>✓</span> Maintenance testing mencakup empat kategori pemeliharaan: Corrective, Adaptive, Perfective, dan Preventive — masing-masing memerlukan strategi testing yang berbeda.</li>
+          <li><span>✓</span> Impact analysis adalah langkah wajib sebelum menentukan cakupan regression testing, untuk menyeimbangkan antara ketelitian dan efisiensi waktu.</li>
+        </ul>
+      </section>
+
+      <section id="latihan">
+        <h2>Latihan Pemahaman Mandiri</h2>
+        <p class="sec-desc">Klik tiap soal untuk melihat kunci jawaban dan penjelasannya.</p>
+
+        <details>
+          <summary>1. Sebuah tim menguji modul pembayaran dengan menggantikan modul pengiriman notifikasi (yang belum selesai dikembangkan) menggunakan modul tiruan. Pendekatan integration testing apa yang digunakan, dan apakah modul tiruan tersebut disebut stub atau driver?</summary>
+          <div class="answer"><b>Jawaban:</b> Pendekatan <b>Top-Down</b> — karena modul level atas (pembayaran) diuji lebih dulu, sementara modul bawahannya (notifikasi) digantikan modul tiruan yang disebut <b>stub</b>.</div>
+        </details>
+
+        <details>
+          <summary>2. Sekelompok pengguna nyata di luar perusahaan mencoba versi awal aplikasi di ponsel mereka sendiri sebelum rilis resmi. Jenis acceptance testing apa ini?</summary>
+          <div class="answer"><b>Jawaban:</b> <b>Beta Testing</b> — dilakukan oleh pengguna asli di luar perusahaan, di lingkungan nyata mereka sendiri, berbeda dengan Alpha Testing yang dilakukan tim internal di lingkungan pengembangan.</div>
+        </details>
+
+        <details>
+          <summary>3. Developer melakukan refactoring pada struktur kode agar lebih mudah dipelihara ke depannya, tanpa mengubah perilaku fungsional aplikasi sama sekali. Termasuk kategori maintenance apa ini?</summary>
+          <div class="answer"><b>Jawaban:</b> <b>Preventive Maintenance</b> — bertujuan mencegah potensi masalah di masa depan lewat perbaikan struktur kode, tanpa mengubah perilaku fungsional yang terlihat pengguna.</div>
+        </details>
+
+        <details>
+          <summary>4. Mengapa regression testing penuh (retest-all) tidak selalu menjadi pilihan terbaik meski paling aman?</summary>
+          <div class="answer"><b>Jawaban:</b> Karena retest-all membutuhkan waktu dan biaya eksekusi yang besar, terutama pada sistem berskala besar. Regression selektif berdasarkan impact analysis yang teliti sering menjadi pilihan lebih efisien, selama risiko melewatkan efek samping yang tidak terduga dapat dikelola dengan baik.</div>
+        </details>
+      </section>
+
+      <section id="tugas">
+        <h2>Tugas Sesi 4</h2>
+        <div class="task-card">
+          <h3>Analisis Level Testing &amp; Impact Analysis</h3>
+          <p>Pilih satu studi kasus perubahan sistem (bisa dari pengalaman magang, proyek kuliah lain, atau kasus fiktif yang realistis — mis. penambahan metode pembayaran baru pada aplikasi e-commerce). Buat laporan singkat yang mencakup:</p>
+          <p style="color:#F2F1EA;">(1) Deskripsi perubahan sistem yang dipilih<br>(2) Level testing apa saja yang perlu dijalankan ulang beserta alasannya<br>(3) Hasil impact analysis: modul/fitur apa saja yang berisiko terdampak<br>(4) Rekomendasi: regression testing penuh atau selektif, beserta justifikasinya</p>
+
+          <table class="rubric-table">
+            <tr><th>Kriteria</th><th>Bobot</th></tr>
+            <tr><td>Ketepatan identifikasi level testing yang relevan</td><td>25%</td></tr>
+            <tr><td>Kedalaman impact analysis</td><td>35%</td></tr>
+            <tr><td>Ketepatan rekomendasi strategi regression testing</td><td>25%</td></tr>
+            <tr><td>Kejelasan struktur &amp; penulisan</td><td>15%</td></tr>
+          </table>
+
+          <span class="deadline-tag">⏳ Dikumpulkan sebelum Sesi 5 dimulai</span>
+        </div>
+      </section>
+
+      <section id="referensi">
+        <h2>Referensi Sesi Ini</h2>
+        <div class="card">
+          <ul class="ref-list">
+            <li><b>Black, R., Graham, D., van Veenendaal, E.</b> — Foundations of Software Testing: ISTQB Certification, bab mengenai Test Levels dan Maintenance Testing.</li>
+            <li><b>Jorgensen, P.C.</b> — Software Testing: A Craftsman's Approach, bagian mengenai integration testing strategies (top-down, bottom-up, sandwich).</li>
+            <li><b>Pressman, R.S.</b> — Software Engineering: A Practitioner's Approach, bab mengenai software maintenance dan reengineering.</li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="nav-next">
+        <a href="sesi3.html">← Sesi 3: Jenis-jenis Testing</a>
+        <a class="to-next" href="index.html#silabus">Sesi 5: Black-Box Testing →</a>
+      </div>
+
+      <footer>
+        <span>Mata Kuliah Software Testing · 3 SKS</span>
+        <span>Dosen Pengampu: Philipus Suryo Subandoro</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>
