@@ -353,7 +353,12 @@
       <section id="model">
         <div class="eyebrow">2.2</div>
         <h2>Model Kualitas Perangkat Lunak — ISO/IEC 25010</h2>
-        <p>Untuk membuat konsep "kualitas" bisa diukur dan dikomunikasikan secara konsisten, industri memakai model kualitas standar. Yang paling banyak dirujuk saat ini adalah <b>ISO/IEC 25010</b> (penerus dari model klasik McCall's Quality Model), yang memecah kualitas menjadi delapan karakteristik utama.</p>
+        <p>Untuk membuat konsep "kualitas" bisa diukur dan dikomunikasikan secara konsisten, industri memakai model kualitas standar. Yang paling banyak dirujuk saat ini adalah <b>ISO/IEC 25010:2023</b> (revisi terbaru, menggantikan edisi 2011 yang telah resmi ditarik/withdrawn per Maret 2024), yang memecah kualitas menjadi sembilan karakteristik utama.</p>
+
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span><b>Catatan revisi standar:</b> ISO/IEC 25010:2011 secara resmi digantikan oleh <b>ISO/IEC 25010:2023</b>. Dua perubahan nama yang paling penting untuk diingat: <i>Usability</i> → <b>Interaction Capability</b>, dan <i>Portability</i> → <b>Flexibility</b>. Selain itu, ditambahkan karakteristik baru: <b>Safety</b>.</span>
+        </div>
 
         <div class="model-grid">
           <div class="model-card">
@@ -369,8 +374,8 @@
             <p>Kemampuan bertukar informasi dan berjalan berdampingan dengan sistem/perangkat lain di lingkungan yang sama.</p>
           </div>
           <div class="model-card">
-            <h4>Usability <span class="model-tag">kegunaan</span></h4>
-            <p>Sejauh mana produk dapat digunakan secara efektif, efisien, dan memuaskan oleh pengguna tertentu.</p>
+            <h4>Interaction Capability <span class="model-tag">interaksi</span></h4>
+            <p>Sejauh mana produk dapat digunakan secara efektif, efisien, dan memuaskan oleh pengguna tertentu — <i>penamaan baru pengganti "Usability"</i>, kini mencakup sub-karakteristik inclusivity dan self-descriptiveness.</p>
           </div>
           <div class="model-card">
             <h4>Reliability <span class="model-tag">keandalan</span></h4>
@@ -378,21 +383,25 @@
           </div>
           <div class="model-card">
             <h4>Security <span class="model-tag">keamanan</span></h4>
-            <p>Sejauh mana produk melindungi data dan informasi dari akses tidak sah, sekaligus tetap dapat diakses pihak yang berwenang.</p>
+            <p>Sejauh mana produk melindungi data dan informasi dari akses tidak sah, sekaligus tetap dapat diakses pihak yang berwenang — kini mencakup sub-karakteristik resistance.</p>
           </div>
           <div class="model-card">
             <h4>Maintainability <span class="model-tag">pemeliharaan</span></h4>
             <p>Tingkat efektivitas dan efisiensi produk dapat dimodifikasi — diperbaiki, ditingkatkan, atau disesuaikan.</p>
           </div>
           <div class="model-card">
-            <h4>Portability <span class="model-tag">portabilitas</span></h4>
-            <p>Sejauh mana produk dapat dipindahkan secara efektif dari satu lingkungan (hardware/software/organisasi) ke lingkungan lain.</p>
+            <h4>Flexibility <span class="model-tag">fleksibilitas</span></h4>
+            <p>Sejauh mana produk dapat disesuaikan terhadap perubahan kebutuhan, lingkungan, atau konfigurasi — <i>penamaan baru pengganti "Portability"</i>, kini mencakup sub-karakteristik scalability.</p>
+          </div>
+          <div class="model-card">
+            <h4>Safety <span class="model-tag">keselamatan · baru</span></h4>
+            <p>Karakteristik baru pada revisi 2023 — sejauh mana produk menghindari atau mengurangi risiko cedera pada manusia, kerusakan properti, atau dampak buruk pada lingkungan.</p>
           </div>
         </div>
 
         <div class="callout info">
           <span class="callout-icon">💡</span>
-          <span>Delapan karakteristik ini nantinya menjadi dasar pembagian <b>Functional vs Non-Functional Testing</b> yang akan dibahas di Sesi 3 — Functional Suitability diuji lewat functional testing, sementara tujuh karakteristik lainnya (performance, usability, security, dst.) diuji lewat non-functional testing.</span>
+          <span>Kesembilan karakteristik ini nantinya menjadi dasar pembagian <b>Functional vs Non-Functional Testing</b> yang akan dibahas di Sesi 3 — Functional Suitability diuji lewat functional testing, sementara delapan karakteristik lainnya (performance, interaction capability, security, safety, dst.) diuji lewat non-functional testing.</span>
         </div>
       </section>
 
@@ -579,7 +588,7 @@
         <h2>Rangkuman</h2>
         <ul class="summary-list">
           <li><span>✓</span> Kualitas perangkat lunak punya tiga perspektif yang saling melengkapi: conformance to requirements, fitness for use, dan user satisfaction.</li>
-          <li><span>✓</span> ISO/IEC 25010 memecah kualitas menjadi 8 karakteristik: functional suitability, performance efficiency, compatibility, usability, reliability, security, maintainability, dan portability.</li>
+          <li><span>✓</span> ISO/IEC 25010:2023 memecah kualitas menjadi 9 karakteristik: functional suitability, performance efficiency, compatibility, interaction capability, reliability, security, maintainability, flexibility, dan safety (karakteristik baru).</li>
           <li><span>✓</span> QA berorientasi proses (preventif), QC berorientasi produk (detektif), dan Testing adalah bagian spesifik dari QC yang melibatkan eksekusi program.</li>
           <li><span>✓</span> Biaya memperbaiki defect meningkat drastis semakin telat ditemukan — inilah dasar argumen kuat untuk testing dini dan QA proaktif.</li>
           <li><span>✓</span> Metrik seperti Defect Density dan Defect Removal Efficiency memberi ukuran objektif atas kualitas produk dan efektivitas proses testing.</li>
@@ -615,12 +624,12 @@
         <h2>Tugas Sesi 2</h2>
         <div class="task-card">
           <h3>Analisis Kualitas Aplikasi Nyata</h3>
-          <p>Pilih satu aplikasi yang biasa Anda gunakan sehari-hari (mobile atau web). Evaluasi aplikasi tersebut terhadap kedelapan karakteristik ISO/IEC 25010, lalu identifikasi minimal 3 potensi masalah kualitas yang Anda temukan. Untuk setiap masalah, tentukan kategori Cost of Quality yang relevan bila masalah tersebut baru ditemukan setelah rilis.</p>
-          <p style="color:#F2F1EA;">Laporan maksimal 2 halaman, mencakup: (1) profil aplikasi yang dipilih, (2) tabel evaluasi 8 karakteristik ISO/IEC 25010, (3) minimal 3 temuan masalah kualitas beserta kategorisasi Cost of Quality-nya.</p>
+          <p>Pilih satu aplikasi yang biasa Anda gunakan sehari-hari (mobile atau web). Evaluasi aplikasi tersebut terhadap kesembilan karakteristik ISO/IEC 25010:2023, lalu identifikasi minimal 3 potensi masalah kualitas yang Anda temukan. Untuk setiap masalah, tentukan kategori Cost of Quality yang relevan bila masalah tersebut baru ditemukan setelah rilis.</p>
+          <p style="color:#F2F1EA;">Laporan maksimal 2 halaman, mencakup: (1) profil aplikasi yang dipilih, (2) tabel evaluasi 9 karakteristik ISO/IEC 25010:2023, (3) minimal 3 temuan masalah kualitas beserta kategorisasi Cost of Quality-nya.</p>
 
           <table class="rubric-table">
             <tr><th>Kriteria</th><th>Bobot</th></tr>
-            <tr><td>Ketepatan pemetaan ke 8 karakteristik ISO/IEC 25010</td><td>35%</td></tr>
+            <tr><td>Ketepatan pemetaan ke 9 karakteristik ISO/IEC 25010:2023</td><td>35%</td></tr>
             <tr><td>Kedalaman analisis temuan masalah kualitas</td><td>35%</td></tr>
             <tr><td>Ketepatan kategorisasi Cost of Quality</td><td>20%</td></tr>
             <tr><td>Kejelasan struktur &amp; penulisan</td><td>10%</td></tr>
@@ -636,7 +645,7 @@
           <ul class="ref-list">
             <li><b>Pressman, R.S.</b> — Software Engineering: A Practitioner's Approach, bab mengenai manajemen kualitas dan metrik perangkat lunak.</li>
             <li><b>Black, R., Graham, D., van Veenendaal, E.</b> — Foundations of Software Testing: ISTQB Certification, bagian mengenai Quality Assurance dan Cost of Quality.</li>
-            <li><b>ISO/IEC 25010:2011</b> — Systems and software engineering: Systems and software Quality Requirements and Evaluation (SQuaRE).</li>
+            <li><b>ISO/IEC 25010:2023</b> — Systems and software engineering: Systems and software Quality Requirements and Evaluation (SQuaRE), Product quality model. Menggantikan edisi 2011 yang telah resmi ditarik (withdrawn) per Maret 2024.</li>
           </ul>
         </div>
       </section>
