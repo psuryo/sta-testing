@@ -300,7 +300,7 @@
         <div class="card">
           <ul class="obj-list">
             <li><span class="check">✓</span> Membedakan Functional Testing dan Non-Functional Testing beserta contoh masing-masing.</li>
-            <li><span class="check">✓</span> Menjelaskan sub-jenis Non-Functional Testing (performance, usability, security, reliability, compatibility) dan mengaitkannya dengan karakteristik ISO/IEC 25010 dari Sesi 2.</li>
+            <li><span class="check">✓</span> Menjelaskan sub-jenis Non-Functional Testing (performance, usability, security, reliability, compatibility, safety) dan mengaitkannya dengan karakteristik ISO/IEC 25010:2023 dari Sesi 2.</li>
             <li><span class="check">✓</span> Membedakan Manual Testing dan Automated Testing beserta kelebihan-kekurangannya.</li>
             <li><span class="check">✓</span> Menjelaskan konsep Automation Testing Pyramid dan alasan di baliknya.</li>
             <li><span class="check">✓</span> Mengklasifikasikan skenario testing nyata ke dalam kombinasi keempat sumbu (functional/non-functional × manual/otomatis).</li>
@@ -327,7 +327,7 @@
           <div class="fnf-card nonfunc">
             <h4>Non-Functional Testing</h4>
             <div class="fnf-question">"Seberapa baik sistem menjalankan fungsi tersebut?"</div>
-            <p style="font-size:13px; margin:0;">Menguji <b>kualitas menjalankan</b> fungsi — kecepatan, keamanan, kemudahan pakai, daya tahan. Berkaitan langsung dengan 7 karakteristik kualitas ISO/IEC 25010 (Sesi 2) selain Functional Suitability.</p>
+            <p style="font-size:13px; margin:0;">Menguji <b>kualitas menjalankan</b> fungsi — kecepatan, keamanan, kemudahan pakai, daya tahan. Berkaitan langsung dengan 8 karakteristik kualitas ISO/IEC 25010:2023 (Sesi 2) selain Functional Suitability.</p>
             <ul>
               <li>Halaman termuat dalam &lt;2 detik</li>
               <li>Sistem tahan 1000 pengguna bersamaan</li>
@@ -345,13 +345,18 @@
       <section id="subnonfunc">
         <div class="eyebrow">3.2</div>
         <h2>Sub-jenis Non-Functional Testing</h2>
-        <p>Non-Functional Testing bukan satu jenis tunggal — ia terbagi menjadi beberapa sub-jenis, masing-masing memetakan langsung ke karakteristik ISO/IEC 25010 yang sudah dibahas di Sesi 2.</p>
+        <p>Non-Functional Testing bukan satu jenis tunggal — ia terbagi menjadi beberapa sub-jenis, masing-masing memetakan langsung ke karakteristik ISO/IEC 25010:2023 yang sudah dibahas di Sesi 2.</p>
+
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span><b>Catatan istilah:</b> nama sub-jenis testing di industri (kolom kiri) sebagian besar tetap dipakai secara informal meski nama karakteristik resminya di ISO/IEC 25010:2023 sudah berubah — misalnya "Usability Testing" tetap lazim disebut demikian meski karakteristik ISO-nya kini bernama <b>Interaction Capability</b>.</span>
+        </div>
 
         <div class="card">
           <table style="width:100%; border-collapse:collapse; font-size:13.5px;">
             <tr>
               <th style="border:1px solid var(--rule); padding:10px 13px; text-align:left; background:var(--paper); font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); text-transform:uppercase;">Sub-jenis Testing</th>
-              <th style="border:1px solid var(--rule); padding:10px 13px; text-align:left; background:var(--paper); font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); text-transform:uppercase;">Karakteristik ISO/IEC 25010</th>
+              <th style="border:1px solid var(--rule); padding:10px 13px; text-align:left; background:var(--paper); font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); text-transform:uppercase;">Karakteristik ISO/IEC 25010:2023</th>
               <th style="border:1px solid var(--rule); padding:10px 13px; text-align:left; background:var(--paper); font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft); text-transform:uppercase;">Contoh Pertanyaan Uji</th>
             </tr>
             <tr>
@@ -361,7 +366,7 @@
             </tr>
             <tr>
               <td style="border:1px solid var(--rule); padding:10px 13px;">Usability Testing</td>
-              <td style="border:1px solid var(--rule); padding:10px 13px;">Usability</td>
+              <td style="border:1px solid var(--rule); padding:10px 13px;">Interaction Capability <span style="color:var(--ink-soft); font-size:11.5px;">(dahulu: Usability)</span></td>
               <td style="border:1px solid var(--rule); padding:10px 13px; color:var(--ink-soft);">Bisakah pengguna baru menyelesaikan tugas tanpa panduan?</td>
             </tr>
             <tr>
@@ -379,12 +384,22 @@
               <td style="border:1px solid var(--rule); padding:10px 13px;">Compatibility</td>
               <td style="border:1px solid var(--rule); padding:10px 13px; color:var(--ink-soft);">Apakah tampilan tetap benar di berbagai browser/device?</td>
             </tr>
+            <tr>
+              <td style="border:1px solid var(--rule); padding:10px 13px;">Portability / Configuration Testing</td>
+              <td style="border:1px solid var(--rule); padding:10px 13px;">Flexibility <span style="color:var(--ink-soft); font-size:11.5px;">(dahulu: Portability)</span></td>
+              <td style="border:1px solid var(--rule); padding:10px 13px; color:var(--ink-soft);">Apakah sistem tetap berjalan baik saat dipindahkan ke lingkungan/server lain?</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid var(--rule); padding:10px 13px;">Safety Testing <span style="color:var(--pass); font-size:11px;">· baru</span></td>
+              <td style="border:1px solid var(--rule); padding:10px 13px;">Safety <span style="color:var(--pass); font-size:11.5px;">(karakteristik baru 2023)</span></td>
+              <td style="border:1px solid var(--rule); padding:10px 13px; color:var(--ink-soft);">Apakah kegagalan sistem berpotensi mencederai pengguna atau merusak properti?</td>
+            </tr>
           </table>
         </div>
 
         <div class="callout info">
           <span class="callout-icon">💡</span>
-          <span>Perhatikan bahwa tabel ini secara langsung menyambung ke model kualitas ISO/IEC 25010 di Sesi 2 — non-functional testing pada dasarnya adalah <b>cara mengukur</b> apakah 7 karakteristik kualitas non-fungsional tersebut benar-benar terpenuhi.</span>
+          <span>Perhatikan bahwa tabel ini secara langsung menyambung ke model kualitas ISO/IEC 25010:2023 di Sesi 2 — non-functional testing pada dasarnya adalah <b>cara mengukur</b> apakah 8 karakteristik kualitas non-fungsional tersebut benar-benar terpenuhi.</span>
         </div>
       </section>
 
@@ -500,7 +515,7 @@
         <h2>Rangkuman</h2>
         <ul class="summary-list">
           <li><span>✓</span> Functional Testing menguji <i>apa yang dilakukan</i> sistem; Non-Functional Testing menguji <i>seberapa baik</i> sistem melakukannya.</li>
-          <li><span>✓</span> Non-Functional Testing terbagi menjadi performance, usability, security, reliability, dan compatibility testing — masing-masing memetakan ke karakteristik ISO/IEC 25010.</li>
+          <li><span>✓</span> Non-Functional Testing terbagi menjadi performance, usability, security, reliability, compatibility, dan safety testing — masing-masing memetakan ke karakteristik ISO/IEC 25010:2023.</li>
           <li><span>✓</span> Manual Testing unggul untuk eksplorasi dan usability; Automated Testing unggul untuk regression testing yang repetitif.</li>
           <li><span>✓</span> Automation Testing Pyramid merekomendasikan porsi terbesar automation di level Unit Testing, bukan di level UI/E2E.</li>
           <li><span>✓</span> Functional/Non-Functional dan Manual/Otomatis adalah dua sumbu klasifikasi independen — setiap skenario testing nyata berada di salah satu dari empat kombinasi kuadran.</li>
@@ -564,7 +579,7 @@
 
       <div class="nav-next">
         <a href="sesi2.html">← Sesi 2: Manajemen Kualitas PL</a>
-        <a class="to-next" href="index.html#silabus">Sesi 4: Test Levels &amp; Maintenance Testing →</a>
+        <a class="to-next" href="sesi4.html">Sesi 4: Test Levels &amp; Maintenance Testing →</a>
       </div>
 
       <footer>
