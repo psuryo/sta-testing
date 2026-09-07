@@ -186,6 +186,22 @@
   .flow-title{font-weight:600; font-size:13.5px;}
   .flow-desc{color:var(--ink-soft); font-size:13px;}
 
+  /* metrik table */
+  .metric-table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  .metric-table th, .metric-table td{border:1px solid var(--rule); padding:10px 13px; text-align:left; vertical-align:top;}
+  .metric-table th{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:500;
+    font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em;
+  }
+  .metric-table code{
+    font-family:'IBM Plex Mono', monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;
+  }
+  .example-box{
+    background:var(--paper); border:1px solid var(--rule); border-radius:8px;
+    padding:12px 14px; font-size:13px; color:var(--ink-soft); margin-top:8px;
+  }
+  .example-box b{color:var(--ink);}
+
   details{
     border:1px solid var(--rule); border-radius:10px; padding:14px 18px; margin-bottom:10px; background:var(--paper-raised);
   }
@@ -271,6 +287,7 @@
     <a class="toc-link" href="#acceptance">4.3 Jenis Acceptance Testing</a>
     <a class="toc-link" href="#maintenance">4.4 Maintenance Testing</a>
     <a class="toc-link" href="#impact">4.5 Impact Analysis &amp; Regression</a>
+    <a class="toc-link" href="#metrikregresi">4.6 Mengukur Efektivitas Regression</a>
     <a class="toc-link" href="#studikasus">Studi Kasus Diskusi</a>
     <a class="toc-link" href="#rangkuman">Rangkuman</a>
     <a class="toc-link" href="#latihan">Latihan Pemahaman</a>
@@ -488,6 +505,57 @@
         </div>
       </section>
 
+      <section id="metrikregresi">
+        <div class="eyebrow">4.6</div>
+        <h2>Mengukur Efektivitas Regression Testing</h2>
+        <p>Selain menjalankannya, tim testing perlu <b>mengukur</b> seberapa efisien dan efektif proses regression testing yang dilakukan. Berikut metrik yang paling umum dipakai, lengkap dengan contoh perhitungannya.</p>
+
+        <div class="card">
+          <table class="metric-table">
+            <tr><th>Metrik</th><th>Rumus</th><th>Kegunaan</th></tr>
+            <tr>
+              <td>Regression Test Selection Ratio</td>
+              <td><code>Test case terpilih ÷ Total test suite × 100%</code></td>
+              <td>Mengukur seberapa efisien seleksi regresi dibanding menjalankan seluruh test suite (retest-all).</td>
+            </tr>
+            <tr>
+              <td>Defect Regression Rate</td>
+              <td><code>Jumlah defect regresi ÷ Total defect yang diperbaiki × 100%</code></td>
+              <td>Mengukur seberapa sering bug yang sudah "selesai diperbaiki" muncul kembali akibat perubahan lain — indikator kualitas proses fix &amp; testing.</td>
+            </tr>
+            <tr>
+              <td>Regression Test Coverage</td>
+              <td><code>Kode/fitur tercakup test ÷ Total kode/fitur × 100%</code></td>
+              <td>Mengukur seberapa luas regression suite mencakup keseluruhan sistem.</td>
+            </tr>
+            <tr>
+              <td>Automation Time Saved</td>
+              <td><code>Waktu eksekusi manual − Waktu eksekusi otomatis</code></td>
+              <td>Mengukur manfaat mengotomasi regression suite — dasar argumen mengapa regression test jadi kandidat utama automation (lih. Automation Testing Pyramid, Sesi 3).</td>
+            </tr>
+          </table>
+        </div>
+
+        <h4>Contoh Perhitungan</h4>
+        <div class="example-box">
+          <b>Selection Ratio:</b> total test suite berisi 500 test case. Setelah impact analysis atas perubahan format nomor rekening (studi kasus di atas), hanya 80 test case yang relevan dengan modul terdampak.<br>
+          Selection Ratio = 80 ÷ 500 × 100% = <b>16%</b> — tim menghemat sekitar 84% waktu eksekusi dibanding menjalankan retest-all, dengan syarat impact analysis-nya akurat.
+        </div>
+        <div class="example-box">
+          <b>Defect Regression Rate:</b> dalam satu rilis, tim memperbaiki 40 defect. Pada rilis berikutnya, 5 dari defect tersebut muncul kembali.<br>
+          Defect Regression Rate = 5 ÷ 40 × 100% = <b>12,5%</b> — semakin tinggi angka ini, semakin lemah proses regression testing atau code review tim.
+        </div>
+        <div class="example-box">
+          <b>Automation Time Saved:</b> regresi manual untuk satu modul membutuhkan 16 jam kerja tester, sementara automation suite untuk modul yang sama hanya butuh 45 menit sekali jalan.<br>
+          Time Saved = 16 jam − 0,75 jam = <b>15,25 jam per siklus rilis</b> — argumen kuat untuk memprioritaskan automation pada regression suite.
+        </div>
+
+        <div class="callout tip">
+          <span class="callout-icon">✓</span>
+          <span><b>Poin kunci:</b> Selection Ratio yang rendah itu bagus (efisien) <i>selama</i> Defect Regression Rate juga tetap rendah. Jika Selection Ratio rendah tapi Defect Regression Rate justru tinggi, itu tanda bahwa impact analysis kurang teliti — cakupan regresi dipotong terlalu agresif.</span>
+        </div>
+      </section>
+
       <section id="studikasus">
         <h2>Studi Kasus Diskusi Kelas</h2>
         <p class="sec-desc">Diskusi kelompok kecil (4–5 orang), 10 menit diskusi + 2 menit presentasi per kelompok.</p>
@@ -512,6 +580,7 @@
           <li><span>✓</span> Acceptance testing terbagi menjadi Alpha, Beta, UAT, dan Contract/Regulation Acceptance — dibedakan dari siapa yang menguji dan konteksnya.</li>
           <li><span>✓</span> Maintenance testing mencakup empat kategori pemeliharaan: Corrective, Adaptive, Perfective, dan Preventive — masing-masing memerlukan strategi testing yang berbeda.</li>
           <li><span>✓</span> Impact analysis adalah langkah wajib sebelum menentukan cakupan regression testing, untuk menyeimbangkan antara ketelitian dan efisiensi waktu.</li>
+          <li><span>✓</span> Efektivitas regression testing dapat diukur lewat Selection Ratio, Defect Regression Rate, Regression Test Coverage, dan Automation Time Saved.</li>
         </ul>
       </section>
 
@@ -537,6 +606,11 @@
         <details>
           <summary>4. Mengapa regression testing penuh (retest-all) tidak selalu menjadi pilihan terbaik meski paling aman?</summary>
           <div class="answer"><b>Jawaban:</b> Karena retest-all membutuhkan waktu dan biaya eksekusi yang besar, terutama pada sistem berskala besar. Regression selektif berdasarkan impact analysis yang teliti sering menjadi pilihan lebih efisien, selama risiko melewatkan efek samping yang tidak terduga dapat dikelola dengan baik.</div>
+        </details>
+
+        <details>
+          <summary>5. Sebuah tim memilih 60 test case dari total 400 test case dalam regression suite mereka. Dari 25 defect yang diperbaiki pada rilis sebelumnya, 3 di antaranya muncul kembali. Hitung Selection Ratio dan Defect Regression Rate-nya, lalu interpretasikan.</summary>
+          <div class="answer"><b>Jawaban:</b> Selection Ratio = 60 ÷ 400 × 100% = <b>15%</b>. Defect Regression Rate = 3 ÷ 25 × 100% = <b>12%</b>. Interpretasi: seleksi regresi cukup efisien (hanya 15% dari total suite dijalankan) dan defect regression rate-nya relatif rendah (12%), menandakan impact analysis yang dilakukan cukup akurat — efisiensi tinggi tidak dibarengi lonjakan bug yang muncul kembali.</div>
         </details>
       </section>
 
