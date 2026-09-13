@@ -662,15 +662,27 @@
       <section id="tugas">
         <h2>Tugas Sesi 5</h2>
         <div class="task-card">
-          <h3>Merancang Test Case EP &amp; BVA untuk Form Nyata</h3>
-          <p>Pilih satu form input dari aplikasi yang biasa Anda gunakan (contoh: form registrasi, form checkout, form ganti PIN) yang memiliki validasi rentang nilai (numerik, panjang karakter, atau tanggal). Untuk form tersebut:</p>
-          <p style="color:#F2F1EA;">(1) Jelaskan spesifikasi/aturan validasi yang berlaku pada field tersebut<br>(2) Tentukan partisi valid dan invalid menggunakan Equivalence Partitioning<br>(3) Tentukan titik-titik batas menggunakan Boundary Value Analysis<br>(4) Susun tabel test case gabungan EP + BVA lengkap dengan nilai input dan hasil yang diharapkan</p>
+          <h3>Merancang Form &amp; Rangkaian Test Case Lengkap (EP + BVA + Decision Table)</h3>
+          <p>Tentukan satu aplikasi fiktif (bebas — e-commerce, layanan kesehatan, akademik, transportasi, dll.), lalu <b>rancang sendiri satu form input</b> untuk aplikasi tersebut. Form yang dirancang wajib memenuhi kedua syarat berikut agar seluruh teknik pada sesi ini dapat diterapkan:</p>
+          <p style="color:#F2F1EA;">
+            <b>Syarat 1 —</b> minimal satu field bertipe rentang nilai (numerik, panjang karakter, atau tanggal) untuk penerapan EP + BVA.<br>
+            <b>Syarat 2 —</b> minimal 2–3 kondisi/field yang saling berinteraksi dalam satu aturan bisnis (menghasilkan satu keputusan diterima/ditolak) untuk penerapan Decision Table.
+          </p>
+          <p style="color:#F2F1EA;">Laporan mencakup:</p>
+          <p style="color:#F2F1EA;">
+            (1) Sketsa/deskripsi form beserta spesifikasi dan aturan validasi tiap field secara eksplisit<br>
+            (2) Penerapan Equivalence Partitioning pada field rentang nilai<br>
+            (3) Penerapan Boundary Value Analysis pada field yang sama, lengkap dengan tabel test case gabungan EP + BVA<br>
+            (4) Penerapan Decision Table pada kombinasi kondisi yang saling berinteraksi, termasuk penyederhanaan dengan "don't care" jika relevan<br>
+            (5) Justifikasi singkat: mengapa kombinasi field tersebut dipilih, dan mengapa teknik yang dipakai pada masing-masing field sudah tepat
+          </p>
 
           <table class="rubric-table">
             <tr><th>Kriteria</th><th>Bobot</th></tr>
-            <tr><td>Ketepatan identifikasi partisi (EP)</td><td>30%</td></tr>
-            <tr><td>Ketepatan identifikasi titik batas (BVA)</td><td>30%</td></tr>
-            <tr><td>Kelengkapan &amp; kejelasan tabel test case gabungan</td><td>30%</td></tr>
+            <tr><td>Kelayakan desain form (memenuhi Syarat 1 &amp; 2)</td><td>15%</td></tr>
+            <tr><td>Ketepatan penerapan EP &amp; BVA</td><td>30%</td></tr>
+            <tr><td>Ketepatan penerapan Decision Table</td><td>30%</td></tr>
+            <tr><td>Justifikasi pemilihan teknik</td><td>15%</td></tr>
             <tr><td>Kejelasan struktur &amp; penulisan</td><td>10%</td></tr>
           </table>
 
