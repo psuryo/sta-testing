@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sesi 5 — Black-Box Testing: Equivalence Partitioning & Boundary Value Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAFAF7;
+    --paper-raised:#FFFFFF;
+    --ink:#1A1D29;
+    --ink-soft:#565B6E;
+    --rule:#E1DED4;
+    --pass:#0F6B5C;
+    --pass-bg:#E9F3EF;
+    --info:#2C5F8A;
+    --info-bg:#EAF1F7;
+    --amber:#A9761E;
+    --amber-bg:#FBF2E1;
+    --red:#B5432E;
+    --red-bg:#FBEDE9;
+    --mono-bg:#1A1D29;
+    --mono-text:#D9F2E6;
+    --sidebar-w:250px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+
+  .shell{display:flex; min-height:100vh;}
+
+  .sidebar{
+    width:var(--sidebar-w); flex-shrink:0;
+    background:var(--ink); color:#EDEBE0;
+    padding:32px 22px 40px;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .back-link{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'IBM Plex Mono', monospace; font-size:12px;
+    color:#8FE0C6; text-decoration:none; margin-bottom:26px;
+  }
+  .back-link:hover{text-decoration:underline;}
+  .brand-sub{
+    font-family:'IBM Plex Mono', monospace; font-size:11px;
+    color:#7C8093; margin-bottom:4px;
+  }
+  .brand-name{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:17px; color:#fff; margin-bottom:24px;
+  }
+  .nav-label{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.08em; color:#7C8093; margin-bottom:10px;
+  }
+  .toc-link{
+    display:block; font-size:13px; color:#C9C7BC; text-decoration:none;
+    padding:6px 0 6px 12px; border-left:2px solid #3A3D4A;
+    transition:all .15s;
+  }
+  .toc-link:hover{color:#fff; border-left-color:#4FE3B8;}
+
+  main{flex:1; min-width:0;}
+  .wrap{max-width:800px; margin:0 auto; padding:56px 32px 100px;}
+
+  section{margin-bottom:56px; scroll-margin-top:24px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--pass);
+    letter-spacing:.06em; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:"$"; color:var(--ink-soft);}
+  h1{
+    font-family:'Space Grotesk', sans-serif; font-size:36px; font-weight:700;
+    margin:0 0 14px; letter-spacing:-.01em; line-height:1.15;
+  }
+  h2{
+    font-family:'Space Grotesk', sans-serif; font-size:23px; font-weight:600; margin:0 0 6px;
+  }
+  h3{
+    font-family:'Space Grotesk', sans-serif; font-size:18px; font-weight:600; margin:26px 0 10px;
+  }
+  h4{font-size:15px; font-weight:600; margin:18px 0 8px;}
+  .lead{color:var(--ink-soft); font-size:16px; max-width:620px;}
+  .sec-desc{color:var(--ink-soft); font-size:14.5px; margin:0 0 20px;}
+  p{font-size:14.5px; margin:0 0 12px;}
+
+  .meta-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:20px;}
+  .meta-chip{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; background:var(--paper-raised);
+    border:1px solid var(--rule); padding:6px 12px; border-radius:100px; color:var(--ink-soft);
+  }
+
+  .card{
+    background:var(--paper-raised); border:1px solid var(--rule);
+    border-radius:12px; padding:22px 24px;
+  }
+
+  .obj-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .obj-list li{display:flex; gap:12px; align-items:flex-start; font-size:14.5px;}
+  .check{
+    flex-shrink:0; width:20px; height:20px; border-radius:5px; background:var(--pass-bg);
+    color:var(--pass); display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; margin-top:2px;
+  }
+
+  .callout{
+    display:flex; gap:12px; align-items:flex-start; border-radius:10px;
+    padding:14px 16px; font-size:14px; margin:16px 0;
+  }
+  .callout.info{background:var(--info-bg); border:1px solid #C7DBEA; color:#1E4560;}
+  .callout.tip{background:var(--pass-bg); border:1px solid #C9E4DA; color:#0C4F44;}
+  .callout.warn{background:var(--amber-bg); border:1px solid #ECD9B0; color:#6B4A0F;}
+  .callout b{font-weight:600;}
+  .callout-icon{font-size:16px; flex-shrink:0;}
+
+  /* partition number line */
+  .partition-wrap{margin:20px 0 8px;}
+  .partition-bar{display:flex; height:44px; border-radius:8px; overflow:hidden; border:1px solid var(--rule);}
+  .partition-seg{
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:600; color:#fff;
+  }
+  .partition-seg.invalid{background:var(--red);}
+  .partition-seg.valid{background:var(--pass);}
+  .partition-labels{display:flex; margin-top:8px;}
+  .partition-labels span{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-soft); text-align:center;
+  }
+
+  /* boundary points row */
+  .boundary-points{display:flex; justify-content:space-between; margin-top:14px; flex-wrap:wrap; gap:8px;}
+  .bpoint{
+    flex:1; min-width:70px; text-align:center; background:var(--paper); border:1px solid var(--rule);
+    border-radius:8px; padding:8px 4px;
+  }
+  .bpoint .val{font-family:'IBM Plex Mono', monospace; font-size:13px; font-weight:600; color:var(--ink);}
+  .bpoint .lbl{font-size:10px; color:var(--ink-soft); margin-top:2px;}
+  .bpoint.valid-pt{border-color:#C9E4DA; background:var(--pass-bg);}
+  .bpoint.invalid-pt{border-color:#F0C4B8; background:var(--red-bg);}
+
+  /* test case table */
+  .tc-table{width:100%; border-collapse:collapse; font-size:13px;}
+  .tc-table th, .tc-table td{border:1px solid var(--rule); padding:9px 12px; text-align:left; vertical-align:top;}
+  .tc-table th{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:500;
+    font-size:10.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em;
+  }
+  .tc-table td.status-valid{color:var(--pass); font-weight:600;}
+  .tc-table td.status-invalid{color:var(--red); font-weight:600;}
+  .tc-table code{
+    font-family:'IBM Plex Mono', monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;
+  }
+
+  /* steps */
+  .step{
+    display:grid; grid-template-columns:32px 1fr; gap:14px; margin-bottom:18px;
+  }
+  .step-num{
+    width:32px; height:32px; border-radius:8px; background:var(--ink); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono', monospace; font-size:13px; font-weight:500; flex-shrink:0;
+  }
+  .step-title{font-weight:600; font-size:14.5px; margin:0 0 4px;}
+  .step-body{font-size:13.5px; color:var(--ink-soft);}
+
+  /* decision table */
+  .dt-table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  .dt-table th, .dt-table td{border:1px solid var(--rule); padding:9px 10px; text-align:center;}
+  .dt-table th{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:500;
+    font-size:11px; color:var(--ink-soft);
+  }
+  .dt-table td.dt-label{
+    text-align:left; font-weight:500; background:var(--paper); color:var(--ink);
+  }
+  .dt-table td.dt-y{color:var(--pass); font-weight:700;}
+  .dt-table td.dt-n{color:var(--red); font-weight:700;}
+  .dt-table td.dt-dc{color:var(--ink-soft); font-style:italic;}
+  .dt-table tr.dt-action td{background:var(--pass-bg); font-weight:600;}
+  .dt-table tr.dt-action td.dt-label{background:var(--pass-bg);}
+  .dt-table tr.dt-action td.action-reject{background:var(--red-bg); color:var(--red);}
+
+  /* pro-con for pros/cons of black box */
+  .pc-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:680px){.pc-grid{grid-template-columns:1fr;}}
+  .pc-card{border-radius:12px; padding:18px 20px;}
+  .pc-card.pro{background:var(--pass-bg); border:1px solid #C9E4DA;}
+  .pc-card.con{background:var(--amber-bg); border:1px solid #ECD9B0;}
+  .pc-card h4{margin-top:0;}
+  .pc-card ul{margin:8px 0 0; padding-left:18px; font-size:13.5px;}
+  .pc-card li{margin-bottom:6px;}
+
+  /* other techniques chips */
+  .chip-row{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;}
+  .chip{
+    font-size:12.5px; background:var(--paper-raised); border:1px solid var(--rule);
+    padding:6px 12px; border-radius:100px; color:var(--ink-soft);
+  }
+
+  .case-card{border:1px solid var(--rule); border-radius:12px; padding:20px 22px; background:var(--paper-raised);}
+  .case-card .case-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--info);
+    background:var(--info-bg); display:inline-block; padding:3px 9px; border-radius:100px; margin-bottom:10px;
+  }
+  .case-card p{font-size:13.5px; color:var(--ink-soft); margin-bottom:8px;}
+  .case-card .prompt-q{font-size:13.5px; color:var(--ink); font-weight:500; margin-top:12px;}
+  .case-card ul{font-size:13.5px; color:var(--ink-soft); margin:8px 0;}
+
+  details{
+    border:1px solid var(--rule); border-radius:10px; padding:14px 18px; margin-bottom:10px; background:var(--paper-raised);
+  }
+  summary{
+    cursor:pointer; font-size:14.5px; font-weight:500; list-style:none;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"+"; color:var(--pass); font-family:'IBM Plex Mono', monospace; font-size:16px;}
+  details[open] summary::after{content:"–";}
+  details[open] summary{margin-bottom:10px;}
+  .answer{font-size:13.5px; color:var(--ink-soft); border-top:1px solid var(--rule); padding-top:10px;}
+  .answer b{color:var(--pass);}
+
+  .task-card{background:var(--ink); color:#F2F1EA; border-radius:12px; padding:26px 28px;}
+  .task-card h3{color:#fff; margin-top:0;}
+  .task-card p{color:#D8D6CC; font-size:14px;}
+  .rubric-table{width:100%; border-collapse:collapse; margin-top:14px; font-size:13px;}
+  .rubric-table th, .rubric-table td{
+    border:1px solid rgba(255,255,255,.15); padding:9px 12px; text-align:left; color:#D8D6CC;
+  }
+  .rubric-table th{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:#8FE0C6;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .deadline-tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:12px;
+    background:rgba(255,255,255,.1); padding:5px 10px; border-radius:100px; color:#F2F1EA; margin-top:16px;
+  }
+
+  .ref-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .ref-list li{font-size:13.5px; color:var(--ink-soft); padding-left:18px; position:relative;}
+  .ref-list li::before{content:"—"; position:absolute; left:0; color:var(--pass);}
+  .ref-list b{color:var(--ink);}
+
+  .summary-list{list-style:none; margin:0; padding:0; display:grid; gap:8px;}
+  .summary-list li{
+    display:flex; gap:10px; align-items:flex-start; font-size:14px;
+    background:var(--pass-bg); padding:10px 14px; border-radius:8px; color:#0C4F44;
+  }
+
+  footer{
+    border-top:1px solid var(--rule); padding-top:24px; margin-top:20px;
+    color:var(--ink-soft); font-size:13px; display:flex; justify-content:space-between;
+    flex-wrap:wrap; gap:8px;
+  }
+  .nav-next{
+    display:flex; justify-content:space-between; align-items:center; gap:16px;
+    border:1px solid var(--rule); border-radius:12px; padding:18px 22px; margin-top:40px;
+  }
+  .nav-next a{text-decoration:none; font-size:13.5px; color:var(--ink-soft);}
+  .nav-next .to-next{color:var(--pass); font-weight:500;}
+
+  @media (max-width:860px){
+    .sidebar{display:none;}
+    .wrap{padding:40px 20px 80px;}
+    h1{font-size:28px;}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <nav class="sidebar">
+    <a class="back-link" href="index.html">← Kembali ke Beranda</a>
+    <div class="brand-sub">software-testing / sesi-05</div>
+    <div class="brand-name">Black-Box Testing</div>
+
+    <div class="nav-label">Isi Halaman</div>
+    <a class="toc-link" href="#pendahuluan">Pendahuluan</a>
+    <a class="toc-link" href="#tujuan">Tujuan Pembelajaran</a>
+    <a class="toc-link" href="#definisi">5.1 Definisi Black-Box Testing</a>
+    <a class="toc-link" href="#ep">5.2 Equivalence Partitioning</a>
+    <a class="toc-link" href="#bva">5.3 Boundary Value Analysis</a>
+    <a class="toc-link" href="#gabung">5.4 Menggabungkan EP &amp; BVA</a>
+    <a class="toc-link" href="#lainnya">5.5 Decision Table Testing</a>
+    <a class="toc-link" href="#teknikringkas">5.6 Teknik Black-Box Lainnya</a>
+    <a class="toc-link" href="#proscons">5.7 Kelebihan &amp; Keterbatasan</a>
+    <a class="toc-link" href="#latihanmandiri">Latihan Merancang Test Case</a>
+    <a class="toc-link" href="#rangkuman">Rangkuman</a>
+    <a class="toc-link" href="#latihan">Latihan Pemahaman</a>
+    <a class="toc-link" href="#tugas">Tugas Sesi 5</a>
+    <a class="toc-link" href="#referensi">Referensi</a>
+  </nav>
+
+  <main>
+    <div class="wrap">
+
+      <section id="pendahuluan">
+        <div class="eyebrow">sesi-05 / 14</div>
+        <h1>Black-Box Testing: Equivalence Partitioning &amp; Boundary Value Analysis</h1>
+        <p class="lead">Sesi pertama yang masuk ke <i>teknik</i> perancangan test case secara konkret. Dua teknik ini adalah fondasi black-box testing paling mendasar — dan hampir selalu dipakai berpasangan dalam praktik nyata.</p>
+        <div class="meta-row">
+          <span class="meta-chip">⏱ 50 menit</span>
+          <span class="meta-chip">🎯 CPMK-2, CPMK-3</span>
+          <span class="meta-chip">📖 3 referensi utama</span>
+        </div>
+      </section>
+
+      <section id="tujuan">
+        <h2>Tujuan Pembelajaran</h2>
+        <p class="sec-desc">Setelah mengikuti sesi ini, mahasiswa mampu:</p>
+        <div class="card">
+          <ul class="obj-list">
+            <li><span class="check">✓</span> Menjelaskan prinsip dasar Black-Box Testing dan bedanya dengan pendekatan White-Box.</li>
+            <li><span class="check">✓</span> Menerapkan Equivalence Partitioning untuk membagi domain input menjadi partisi valid dan invalid.</li>
+            <li><span class="check">✓</span> Menerapkan Boundary Value Analysis untuk merancang test case di sekitar titik batas partisi.</li>
+            <li><span class="check">✓</span> Menggabungkan EP dan BVA menjadi satu rangkaian test case yang efisien namun tetap menyeluruh.</li>
+            <li><span class="check">✓</span> Mengenali kelebihan dan keterbatasan teknik black-box dibanding teknik testing lain.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="definisi">
+        <div class="eyebrow">5.1</div>
+        <h2>Definisi Black-Box Testing</h2>
+        <p><b>Black-Box Testing</b> adalah pendekatan pengujian yang merancang test case berdasarkan <b>spesifikasi/requirement</b> semata — tanpa melihat atau mempertimbangkan struktur kode internal sistem. Tester memperlakukan sistem seperti "kotak hitam": hanya mengamati hubungan antara <i>input</i> yang dimasukkan dan <i>output</i> yang dihasilkan.</p>
+
+        <div class="callout info">
+          <span class="callout-icon">💡</span>
+          <span><b>Kontras dengan White-Box:</b> jika Black-Box bertanya "apakah sistem menghasilkan output yang benar untuk input tertentu?", White-Box (dibahas di Sesi 6) bertanya "apakah setiap baris/cabang kode program sudah dieksekusi dan diuji?". Keduanya saling melengkapi, bukan saling menggantikan.</span>
+        </div>
+
+        <p>Karena tidak bergantung pada struktur kode, Black-Box Testing sangat cocok dilakukan pada level <b>System Testing</b> dan <b>Acceptance Testing</b> (ingat kembali Sesi 4) — di mana tester (bahkan yang bukan programmer) hanya perlu memahami requirement, bukan implementasi kode.</p>
+      </section>
+
+      <section id="ep">
+        <div class="eyebrow">5.2</div>
+        <h2>Equivalence Partitioning (EP)</h2>
+        <p>Prinsip dasar EP: jika satu nilai input dalam suatu grup/partisi sudah diuji dan berhasil, maka nilai lain dalam partisi yang sama <b>dianggap akan berperilaku sama</b> — sehingga tidak perlu menguji semuanya, cukup satu wakil per partisi. Ini mengurangi jumlah test case secara drastis tanpa mengorbankan efektivitas.</p>
+
+        <h4>Contoh Kasus: Validasi Umur Pendaftaran Akun (17–65 tahun)</h4>
+        <p style="font-size:13.5px; color:var(--ink-soft);">Sebuah form pendaftaran akun mensyaratkan usia pengguna antara 17 sampai 65 tahun. Domain input dibagi menjadi tiga partisi:</p>
+
+        <div class="partition-wrap">
+          <div class="partition-bar">
+            <div class="partition-seg invalid" style="flex:1.2;">Invalid (&lt; 17)</div>
+            <div class="partition-seg valid" style="flex:3;">Valid (17 – 65)</div>
+            <div class="partition-seg invalid" style="flex:1.2;">Invalid (&gt; 65)</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <table class="tc-table">
+            <tr><th>Partisi</th><th>Rentang Nilai</th><th>Contoh Nilai Wakil</th><th>Status</th></tr>
+            <tr><td>P1</td><td>Umur &lt; 17</td><td><code>10</code></td><td class="status-invalid">Invalid</td></tr>
+            <tr><td>P2</td><td>17 ≤ Umur ≤ 65</td><td><code>30</code></td><td class="status-valid">Valid</td></tr>
+            <tr><td>P3</td><td>Umur &gt; 65</td><td><code>80</code></td><td class="status-invalid">Invalid</td></tr>
+          </table>
+        </div>
+
+        <div class="callout tip">
+          <span class="callout-icon">✓</span>
+          <span><b>Poin kunci:</b> dengan EP, cukup 3 test case (satu wakil per partisi) untuk mewakili seluruh kemungkinan input yang secara teoretis tak terhingga — jauh lebih efisien daripada mencoba menguji setiap kemungkinan umur satu per satu.</span>
+        </div>
+      </section>
+
+      <section id="bva">
+        <div class="eyebrow">5.3</div>
+        <h2>Boundary Value Analysis (BVA)</h2>
+        <p>Riset dan pengalaman industri menunjukkan bahwa <b>bug cenderung bersembunyi di titik batas/perbatasan</b> suatu partisi, bukan di tengah-tengah — sering disebabkan oleh kesalahan penggunaan operator perbandingan (mis. <code>&lt;</code> ditulis padahal seharusnya <code>&lt;=</code>). BVA merancang test case yang secara khusus menyasar titik-titik batas ini.</p>
+
+        <h4>Menerapkan BVA pada Kasus yang Sama (Batas Bawah 17, Batas Atas 65)</h4>
+        <p style="font-size:13.5px; color:var(--ink-soft);">Untuk setiap titik batas, BVA menguji tiga nilai sekaligus: <b>tepat di batas</b>, <b>satu di bawah batas</b>, dan <b>satu di atas batas</b>.</p>
+
+        <div class="boundary-points">
+          <div class="bpoint invalid-pt"><div class="val">16</div><div class="lbl">min − 1<br>Invalid</div></div>
+          <div class="bpoint valid-pt"><div class="val">17</div><div class="lbl">min<br>Valid</div></div>
+          <div class="bpoint valid-pt"><div class="val">18</div><div class="lbl">min + 1<br>Valid</div></div>
+          <div class="bpoint valid-pt"><div class="val">64</div><div class="lbl">max − 1<br>Valid</div></div>
+          <div class="bpoint valid-pt"><div class="val">65</div><div class="lbl">max<br>Valid</div></div>
+          <div class="bpoint invalid-pt"><div class="val">66</div><div class="lbl">max + 1<br>Invalid</div></div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <table class="tc-table">
+            <tr><th>Test Case</th><th>Nilai Input</th><th>Hasil yang Diharapkan</th></tr>
+            <tr><td>TC-01</td><td><code>16</code></td><td class="status-invalid">Ditolak (di bawah batas minimum)</td></tr>
+            <tr><td>TC-02</td><td><code>17</code></td><td class="status-valid">Diterima (tepat batas minimum)</td></tr>
+            <tr><td>TC-03</td><td><code>18</code></td><td class="status-valid">Diterima (satu di atas batas minimum)</td></tr>
+            <tr><td>TC-04</td><td><code>64</code></td><td class="status-valid">Diterima (satu di bawah batas maksimum)</td></tr>
+            <tr><td>TC-05</td><td><code>65</code></td><td class="status-valid">Diterima (tepat batas maksimum)</td></tr>
+            <tr><td>TC-06</td><td><code>66</code></td><td class="status-invalid">Ditolak (di atas batas maksimum)</td></tr>
+          </table>
+        </div>
+
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span><b>Kesalahan umum:</b> hanya menguji nilai tepat di batas (17 dan 65) tanpa menguji satu di bawah/di atasnya. Padahal bug seperti <code>if (umur &lt; 17)</code> yang seharusnya <code>if (umur &lt;= 17)</code> hanya akan terlihat jika nilai 17 itu sendiri diuji — dan bug seperti operator terbalik hanya akan ketahuan jika titik 16 dan 18 juga diuji sebagai pembanding.</span>
+        </div>
+      </section>
+
+      <section id="gabung">
+        <div class="eyebrow">5.4</div>
+        <h2>Menggabungkan EP dan BVA</h2>
+        <p>Dalam praktik nyata, EP dan BVA jarang dipakai sendiri-sendiri. EP memastikan <b>cakupan kategori</b> nilai (representasi tiap partisi), sedangkan BVA memastikan <b>titik-titik paling rawan bug</b> di dalam dan di antara partisi tersebut ikut diuji. Keduanya saling melengkapi.</p>
+
+        <div class="step">
+          <div class="step-num">1</div>
+          <div>
+            <div class="step-title">Identifikasi partisi dari spesifikasi</div>
+            <div class="step-body">Tentukan partisi valid dan invalid berdasarkan requirement (seperti pada EP di atas).</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div>
+            <div class="step-title">Tentukan titik batas tiap partisi</div>
+            <div class="step-body">Identifikasi batas bawah dan batas atas dari partisi valid (seperti pada BVA di atas).</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div>
+            <div class="step-title">Susun test case gabungan</div>
+            <div class="step-body">Gabungkan wakil dari tiap partisi (EP) dengan titik-titik batas (BVA) menjadi satu set test case, hilangkan duplikasi nilai yang sama.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <table class="tc-table">
+            <tr><th>Test Case</th><th>Nilai</th><th>Teknik</th><th>Hasil Diharapkan</th></tr>
+            <tr><td>TC-01</td><td><code>10</code></td><td>EP (wakil P1)</td><td class="status-invalid">Ditolak</td></tr>
+            <tr><td>TC-02</td><td><code>16</code></td><td>BVA (min − 1)</td><td class="status-invalid">Ditolak</td></tr>
+            <tr><td>TC-03</td><td><code>17</code></td><td>BVA (min)</td><td class="status-valid">Diterima</td></tr>
+            <tr><td>TC-04</td><td><code>18</code></td><td>BVA (min + 1)</td><td class="status-valid">Diterima</td></tr>
+            <tr><td>TC-05</td><td><code>30</code></td><td>EP (wakil P2)</td><td class="status-valid">Diterima</td></tr>
+            <tr><td>TC-06</td><td><code>64</code></td><td>BVA (max − 1)</td><td class="status-valid">Diterima</td></tr>
+            <tr><td>TC-07</td><td><code>65</code></td><td>BVA (max)</td><td class="status-valid">Diterima</td></tr>
+            <tr><td>TC-08</td><td><code>66</code></td><td>BVA (max + 1)</td><td class="status-invalid">Ditolak</td></tr>
+            <tr><td>TC-09</td><td><code>80</code></td><td>EP (wakil P3)</td><td class="status-invalid">Ditolak</td></tr>
+          </table>
+        </div>
+        <p style="font-size:12.5px; color:var(--ink-soft); margin-top:8px;">*Hanya 9 test case untuk mencakup domain input yang secara teoretis tak terhingga — inilah efisiensi utama menggabungkan kedua teknik.</p>
+      </section>
+
+      <section id="lainnya">
+        <div class="eyebrow">5.5</div>
+        <h2>Decision Table Testing</h2>
+        <p>EP dan BVA sangat efektif ketika hanya <b>satu variabel input</b> yang diuji pada satu waktu. Namun, banyak aturan bisnis nyata melibatkan <b>kombinasi beberapa kondisi sekaligus</b> yang saling berinteraksi — di sinilah EP dan BVA mulai kewalahan, dan <b>Decision Table Testing</b> menjadi teknik yang lebih tepat.</p>
+
+        <div class="callout info">
+          <span class="callout-icon">💡</span>
+          <span><b>Prinsip dasar:</b> Decision Table menyusun seluruh kombinasi kondisi (benar/salah) dalam bentuk tabel, lalu memetakan setiap kombinasi ke aksi/hasil yang seharusnya terjadi. Setiap kolom dalam tabel merepresentasikan satu <b>rule</b> (aturan) yang menjadi satu test case.</span>
+        </div>
+
+        <h4>Contoh Kasus: Aturan Persetujuan Transfer Perbankan</h4>
+        <p style="font-size:13.5px; color:var(--ink-soft);">Sebuah sistem transfer perbankan digital hanya mengizinkan transaksi jika <b>ketiga</b> kondisi berikut terpenuhi: (1) saldo mencukupi, (2) limit transfer harian belum terlampaui, dan (3) rekening tujuan valid. Dengan 3 kondisi biner, terdapat 2³ = 8 kemungkinan kombinasi.</p>
+
+        <div class="card" style="overflow-x:auto;">
+          <table class="dt-table">
+            <tr>
+              <th style="text-align:left;">Kondisi / Rule</th>
+              <th>R1</th><th>R2</th><th>R3</th><th>R4</th>
+              <th>R5</th><th>R6</th><th>R7</th><th>R8</th>
+            </tr>
+            <tr>
+              <td class="dt-label">Saldo mencukupi?</td>
+              <td class="dt-y">Y</td><td class="dt-y">Y</td><td class="dt-y">Y</td><td class="dt-y">Y</td>
+              <td class="dt-n">N</td><td class="dt-n">N</td><td class="dt-n">N</td><td class="dt-n">N</td>
+            </tr>
+            <tr>
+              <td class="dt-label">Limit harian belum terlampaui?</td>
+              <td class="dt-y">Y</td><td class="dt-y">Y</td><td class="dt-n">N</td><td class="dt-n">N</td>
+              <td class="dt-y">Y</td><td class="dt-y">Y</td><td class="dt-n">N</td><td class="dt-n">N</td>
+            </tr>
+            <tr>
+              <td class="dt-label">Rekening tujuan valid?</td>
+              <td class="dt-y">Y</td><td class="dt-n">N</td><td class="dt-y">Y</td><td class="dt-n">N</td>
+              <td class="dt-y">Y</td><td class="dt-n">N</td><td class="dt-y">Y</td><td class="dt-n">N</td>
+            </tr>
+            <tr class="dt-action">
+              <td class="dt-label">Aksi: Transfer Diizinkan?</td>
+              <td>YA</td>
+              <td class="action-reject">TIDAK</td><td class="action-reject">TIDAK</td><td class="action-reject">TIDAK</td>
+              <td class="action-reject">TIDAK</td><td class="action-reject">TIDAK</td><td class="action-reject">TIDAK</td><td class="action-reject">TIDAK</td>
+            </tr>
+          </table>
+        </div>
+        <p style="font-size:12.5px; color:var(--ink-soft); margin-top:8px;">*Setiap kolom (R1–R8) menjadi satu test case. Karena aturan bisnisnya adalah "AND" (ketiga kondisi harus terpenuhi), hanya R1 yang menghasilkan transfer diizinkan.</p>
+
+        <h4>Menyederhanakan Tabel dengan "Don't Care"</h4>
+        <p style="font-size:13.5px; color:var(--ink-soft);">Delapan test case di atas sebenarnya bisa disederhanakan. Perhatikan bahwa begitu <b>Saldo tidak mencukupi</b> (kolom R5–R8), hasilnya <i>selalu</i> "TIDAK" berapa pun nilai dua kondisi lainnya. Kondisi yang tidak memengaruhi hasil pada baris tersebut bisa ditandai sebagai <b>don't care</b> (biasanya disimbolkan "–").</p>
+
+        <div class="card" style="overflow-x:auto;">
+          <table class="dt-table">
+            <tr>
+              <th style="text-align:left;">Kondisi / Rule</th>
+              <th>R1</th><th>R2</th><th>R3</th><th>R4</th><th>R5</th>
+            </tr>
+            <tr>
+              <td class="dt-label">Saldo mencukupi?</td>
+              <td class="dt-y">Y</td><td class="dt-y">Y</td><td class="dt-y">Y</td><td class="dt-n">N</td><td class="dt-dc">–</td>
+            </tr>
+            <tr>
+              <td class="dt-label">Limit harian belum terlampaui?</td>
+              <td class="dt-y">Y</td><td class="dt-y">Y</td><td class="dt-n">N</td><td class="dt-dc">–</td><td class="dt-dc">–</td>
+            </tr>
+            <tr>
+              <td class="dt-label">Rekening tujuan valid?</td>
+              <td class="dt-y">Y</td><td class="dt-n">N</td><td class="dt-dc">–</td><td class="dt-dc">–</td><td class="dt-dc">–</td>
+            </tr>
+            <tr class="dt-action">
+              <td class="dt-label">Aksi: Transfer Diizinkan?</td>
+              <td>YA</td>
+              <td class="action-reject">TIDAK</td><td class="action-reject">TIDAK</td><td class="action-reject">TIDAK</td><td class="action-reject">TIDAK</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="callout tip">
+          <span class="callout-icon">✓</span>
+          <span><b>Poin kunci:</b> tabel yang disederhanakan (5 rule) tetap mencakup seluruh 8 kombinasi asli, hanya lebih ringkas untuk dibaca dan dikelola. Namun perlu kehati-hatian — penyederhanaan hanya boleh dilakukan jika benar-benar terverifikasi bahwa kondisi tersebut tidak memengaruhi hasil, bukan sekadar asumsi.</span>
+        </div>
+
+        <h4>Langkah Menyusun Decision Table</h4>
+        <div class="step">
+          <div class="step-num">1</div>
+          <div>
+            <div class="step-title">Identifikasi kondisi (conditions)</div>
+            <div class="step-body">Daftar seluruh variabel/kondisi biner yang memengaruhi hasil (mis. saldo, limit, validitas rekening).</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div>
+            <div class="step-title">Hitung jumlah kombinasi</div>
+            <div class="step-body">Jumlah rule maksimum = 2ⁿ, dengan n = jumlah kondisi biner.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div>
+            <div class="step-title">Tentukan aksi/hasil tiap kombinasi</div>
+            <div class="step-body">Berdasarkan aturan bisnis (requirement), tentukan hasil yang benar untuk setiap kombinasi kondisi.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div>
+            <div class="step-title">Sederhanakan (opsional)</div>
+            <div class="step-body">Gabungkan rule dengan hasil sama yang polanya bisa diringkas memakai "don't care", lalu jadikan setiap rule tersisa sebagai satu test case.</div>
+          </div>
+        </div>
+
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span><b>Kapan dipakai:</b> Decision Table paling bermanfaat ketika ada <b>3 kondisi atau lebih</b> yang saling berinteraksi dengan logika AND/OR yang kompleks. Untuk 1–2 kondisi sederhana, EP dan BVA biasanya masih lebih praktis dan cukup.</span>
+        </div>
+      </section>
+
+      <section id="teknikringkas">
+        <div class="eyebrow">5.6</div>
+        <h2>Teknik Black-Box Lainnya (Sekilas)</h2>
+        <p>Selain EP, BVA, dan Decision Table, beberapa teknik black-box lain yang akan Anda temui di literatur atau pekerjaan nyata:</p>
+        <div class="chip-row">
+          <span class="chip">State Transition Testing — untuk sistem berbasis status/state</span>
+          <span class="chip">Use Case Testing — untuk alur interaksi pengguna end-to-end</span>
+          <span class="chip">Pairwise Testing — untuk kombinasi banyak parameter input</span>
+        </div>
+        <p style="margin-top:12px; font-size:13.5px; color:var(--ink-soft);">Ketiga teknik ini dibangun di atas logika berpikir yang sama seperti EP, BVA, dan Decision Table: mempartisi kemungkinan input/kondisi menjadi kelompok yang bisa diwakili oleh sampel test case yang lebih sedikit, namun masing-masing punya konteks penggunaan yang lebih spesifik dan tidak dibahas mendalam pada mata kuliah ini.</p>
+      </section>
+
+      <section id="proscons">
+        <div class="eyebrow">5.7</div>
+        <h2>Kelebihan dan Keterbatasan Black-Box Testing</h2>
+        <div class="pc-grid">
+          <div class="pc-card pro">
+            <h4>Kelebihan</h4>
+            <ul>
+              <li>Tidak memerlukan pengetahuan pemrograman/struktur kode</li>
+              <li>Merepresentasikan sudut pandang pengguna secara alami</li>
+              <li>Efisien — jumlah test case jauh lebih sedikit daripada mencoba semua kemungkinan input</li>
+              <li>Cocok dilakukan tester independen (mendukung prinsip independensi dari Sesi 1)</li>
+            </ul>
+          </div>
+          <div class="pc-card con">
+            <h4>Keterbatasan</h4>
+            <ul>
+              <li>Tidak menjamin seluruh baris/cabang kode telah dieksekusi (perlu White-Box, Sesi 6)</li>
+              <li>Efektivitas partisi sangat bergantung pada kualitas requirement/spesifikasi</li>
+              <li>Berisiko melewatkan bug yang muncul dari interaksi kompleks antar variabel internal</li>
+              <li>Partisi yang salah diasumsikan "homogen" bisa menyembunyikan bug tersembunyi</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="latihanmandiri">
+        <h2>Latihan Merancang Test Case di Kelas</h2>
+        <p class="sec-desc">Kerjakan berpasangan selama 10 menit, lalu bahas bersama.</p>
+        <div class="case-card">
+          <span class="case-tag">Latihan</span>
+          <h4 style="margin-top:0;">Validasi Nominal Transfer Perbankan Digital</h4>
+          <p>Sebuah aplikasi perbankan digital mensyaratkan nominal transfer antar rekening minimal <b>Rp10.000</b> dan maksimal <b>Rp50.000.000</b> per transaksi.</p>
+          <ul>
+            <li>Tentukan partisi valid dan invalid menggunakan Equivalence Partitioning.</li>
+            <li>Tentukan titik-titik batas menggunakan Boundary Value Analysis.</li>
+            <li>Susun tabel test case gabungan (EP + BVA) lengkap dengan nilai input dan hasil yang diharapkan.</li>
+          </ul>
+          <p class="prompt-q">Bandingkan hasil kerja Anda dengan pasangan lain — apakah jumlah dan nilai test case yang dihasilkan sama?</p>
+        </div>
+      </section>
+
+      <section id="rangkuman">
+        <h2>Rangkuman</h2>
+        <ul class="summary-list">
+          <li><span>✓</span> Black-Box Testing merancang test case berdasarkan spesifikasi, tanpa melihat struktur kode internal.</li>
+          <li><span>✓</span> Equivalence Partitioning membagi domain input menjadi partisi valid/invalid, cukup diuji satu wakil per partisi.</li>
+          <li><span>✓</span> Boundary Value Analysis menyasar titik-titik batas partisi (min−1, min, min+1, max−1, max, max+1) karena bug cenderung bersembunyi di sana.</li>
+          <li><span>✓</span> EP dan BVA saling melengkapi — EP memastikan cakupan kategori, BVA memastikan titik rawan bug ikut teruji.</li>
+          <li><span>✓</span> Decision Table Testing dipakai ketika beberapa kondisi saling berinteraksi dengan logika AND/OR — setiap kombinasi kondisi (rule) menjadi satu test case, dan bisa disederhanakan dengan "don't care" jika suatu kondisi tidak memengaruhi hasil.</li>
+          <li><span>✓</span> Black-Box Testing efisien dan merepresentasikan sudut pandang pengguna, namun perlu dilengkapi White-Box Testing untuk menjamin cakupan struktur kode.</li>
+        </ul>
+      </section>
+
+      <section id="latihan">
+        <h2>Latihan Pemahaman Mandiri</h2>
+        <p class="sec-desc">Klik tiap soal untuk melihat kunci jawaban dan penjelasannya.</p>
+
+        <details>
+          <summary>1. Sebuah field password mensyaratkan panjang 8–16 karakter. Sebutkan enam nilai BVA yang perlu diuji untuk field ini.</summary>
+          <div class="answer"><b>Jawaban:</b> 7 (min−1, invalid), 8 (min, valid), 9 (min+1, valid), 15 (max−1, valid), 16 (max, valid), 17 (max+1, invalid).</div>
+        </details>
+
+        <details>
+          <summary>2. Mengapa BVA dianggap lebih efektif menemukan bug dibanding menguji nilai acak di tengah partisi?</summary>
+          <div class="answer"><b>Jawaban:</b> Karena bug pada validasi input sering disebabkan kesalahan logika di operator perbandingan (mis. <code>&lt;</code> vs <code>&lt;=</code>), yang hanya akan terdeteksi jika nilai tepat di titik batas dan nilai di sekitarnya (satu di bawah/atas) diuji secara spesifik — nilai di tengah partisi tidak akan pernah memicu kesalahan semacam itu.</div>
+        </details>
+
+        <details>
+          <summary>3. Sebuah form hanya menerima input berupa huruf "A", "B", atau "C" untuk memilih kelas pengiriman. Apakah BVA relevan diterapkan pada field ini?</summary>
+          <div class="answer"><b>Jawaban:</b> Tidak relevan. BVA dirancang untuk input yang memiliki rentang nilai numerik/ordinal dengan batas atas-bawah. Untuk input kategorikal diskrit seperti ini, Equivalence Partitioning saja sudah cukup — cukup uji satu wakil dari tiap kategori valid (A, B, C) dan satu wakil kategori invalid (mis. "D").</div>
+        </details>
+
+        <details>
+          <summary>4. Apa risiko utama jika partisi pada Equivalence Partitioning dibuat terlalu besar/kasar?</summary>
+          <div class="answer"><b>Jawaban:</b> Risiko utamanya adalah asumsi "homogenitas" partisi menjadi keliru — bisa jadi ada sub-perilaku berbeda di dalam satu partisi besar yang tidak terdeteksi karena hanya satu wakil nilai yang diuji, sehingga bug yang sebenarnya ada di sebagian partisi tersebut lolos tanpa terdeteksi.</div>
+        </details>
+
+        <details>
+          <summary>5. Sebuah sistem persetujuan pinjaman memiliki 4 kondisi biner yang saling berinteraksi (skor kredit baik, penghasilan cukup, tidak ada tunggakan, dokumen lengkap). Mengapa EP dan BVA kurang tepat digunakan untuk kasus ini, dan berapa maksimum rule pada decision table-nya?</summary>
+          <div class="answer"><b>Jawaban:</b> EP dan BVA dirancang untuk menguji satu variabel input pada satu waktu, sementara kasus ini melibatkan <b>interaksi antar 4 kondisi sekaligus</b> yang menentukan hasil akhir persetujuan — inilah domain yang lebih tepat ditangani Decision Table Testing. Jumlah rule maksimum = 2⁴ = <b>16 rule</b> (sebelum disederhanakan dengan "don't care").</div>
+        </details>
+      </section>
+
+      <section id="tugas">
+        <h2>Tugas Sesi 5</h2>
+        <div class="task-card">
+          <h3>Merancang Test Case EP &amp; BVA untuk Form Nyata</h3>
+          <p>Pilih satu form input dari aplikasi yang biasa Anda gunakan (contoh: form registrasi, form checkout, form ganti PIN) yang memiliki validasi rentang nilai (numerik, panjang karakter, atau tanggal). Untuk form tersebut:</p>
+          <p style="color:#F2F1EA;">(1) Jelaskan spesifikasi/aturan validasi yang berlaku pada field tersebut<br>(2) Tentukan partisi valid dan invalid menggunakan Equivalence Partitioning<br>(3) Tentukan titik-titik batas menggunakan Boundary Value Analysis<br>(4) Susun tabel test case gabungan EP + BVA lengkap dengan nilai input dan hasil yang diharapkan</p>
+
+          <table class="rubric-table">
+            <tr><th>Kriteria</th><th>Bobot</th></tr>
+            <tr><td>Ketepatan identifikasi partisi (EP)</td><td>30%</td></tr>
+            <tr><td>Ketepatan identifikasi titik batas (BVA)</td><td>30%</td></tr>
+            <tr><td>Kelengkapan &amp; kejelasan tabel test case gabungan</td><td>30%</td></tr>
+            <tr><td>Kejelasan struktur &amp; penulisan</td><td>10%</td></tr>
+          </table>
+
+          <span class="deadline-tag">⏳ Dikumpulkan sebelum Sesi 6 dimulai</span>
+        </div>
+      </section>
+
+      <section id="referensi">
+        <h2>Referensi Sesi Ini</h2>
+        <div class="card">
+          <ul class="ref-list">
+            <li><b>Jorgensen, P.C.</b> — Software Testing: A Craftsman's Approach, bab mengenai Equivalence Partitioning dan Boundary Value Analysis.</li>
+            <li><b>Black, R., Graham, D., van Veenendaal, E.</b> — Foundations of Software Testing: ISTQB Certification, bagian teknik black-box test design.</li>
+            <li><b>Myers, G.J., Sandler, C., Badgett, T.</b> — The Art of Software Testing, bab mengenai black-box testing techniques.</li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="nav-next">
+        <a href="sesi4.html">← Sesi 4: Test Levels &amp; Maintenance</a>
+        <a class="to-next" href="index.html#silabus">Sesi 6: White-Box Testing →</a>
+      </div>
+
+      <footer>
+        <span>Mata Kuliah Software Testing · 3 SKS</span>
+        <span>Dosen Pengampu: Philipus Suryo Subandoro</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>
