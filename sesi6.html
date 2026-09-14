@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sesi 6 — White-Box Testing: Statement, Branch, Path Coverage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAFAF7;
+    --paper-raised:#FFFFFF;
+    --ink:#1A1D29;
+    --ink-soft:#565B6E;
+    --rule:#E1DED4;
+    --pass:#0F6B5C;
+    --pass-bg:#E9F3EF;
+    --info:#2C5F8A;
+    --info-bg:#EAF1F7;
+    --amber:#A9761E;
+    --amber-bg:#FBF2E1;
+    --red:#B5432E;
+    --red-bg:#FBEDE9;
+    --mono-bg:#1A1D29;
+    --mono-text:#D9F2E6;
+    --sidebar-w:250px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+
+  .shell{display:flex; min-height:100vh;}
+
+  .sidebar{
+    width:var(--sidebar-w); flex-shrink:0;
+    background:var(--ink); color:#EDEBE0;
+    padding:32px 22px 40px;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .back-link{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'IBM Plex Mono', monospace; font-size:12px;
+    color:#8FE0C6; text-decoration:none; margin-bottom:26px;
+  }
+  .back-link:hover{text-decoration:underline;}
+  .brand-sub{
+    font-family:'IBM Plex Mono', monospace; font-size:11px;
+    color:#7C8093; margin-bottom:4px;
+  }
+  .brand-name{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:17px; color:#fff; margin-bottom:24px;
+  }
+  .nav-label{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.08em; color:#7C8093; margin-bottom:10px;
+  }
+  .toc-link{
+    display:block; font-size:13px; color:#C9C7BC; text-decoration:none;
+    padding:6px 0 6px 12px; border-left:2px solid #3A3D4A;
+    transition:all .15s;
+  }
+  .toc-link:hover{color:#fff; border-left-color:#4FE3B8;}
+
+  main{flex:1; min-width:0;}
+  .wrap{max-width:800px; margin:0 auto; padding:56px 32px 100px;}
+
+  section{margin-bottom:56px; scroll-margin-top:24px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--pass);
+    letter-spacing:.06em; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:"$"; color:var(--ink-soft);}
+  h1{
+    font-family:'Space Grotesk', sans-serif; font-size:36px; font-weight:700;
+    margin:0 0 14px; letter-spacing:-.01em; line-height:1.15;
+  }
+  h2{
+    font-family:'Space Grotesk', sans-serif; font-size:23px; font-weight:600; margin:0 0 6px;
+  }
+  h3{
+    font-family:'Space Grotesk', sans-serif; font-size:18px; font-weight:600; margin:26px 0 10px;
+  }
+  h4{font-size:15px; font-weight:600; margin:18px 0 8px;}
+  .lead{color:var(--ink-soft); font-size:16px; max-width:620px;}
+  .sec-desc{color:var(--ink-soft); font-size:14.5px; margin:0 0 20px;}
+  p{font-size:14.5px; margin:0 0 12px;}
+
+  .meta-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:20px;}
+  .meta-chip{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; background:var(--paper-raised);
+    border:1px solid var(--rule); padding:6px 12px; border-radius:100px; color:var(--ink-soft);
+  }
+
+  .card{
+    background:var(--paper-raised); border:1px solid var(--rule);
+    border-radius:12px; padding:22px 24px;
+  }
+
+  .obj-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .obj-list li{display:flex; gap:12px; align-items:flex-start; font-size:14.5px;}
+  .check{
+    flex-shrink:0; width:20px; height:20px; border-radius:5px; background:var(--pass-bg);
+    color:var(--pass); display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; margin-top:2px;
+  }
+
+  .callout{
+    display:flex; gap:12px; align-items:flex-start; border-radius:10px;
+    padding:14px 16px; font-size:14px; margin:16px 0;
+  }
+  .callout.info{background:var(--info-bg); border:1px solid #C7DBEA; color:#1E4560;}
+  .callout.tip{background:var(--pass-bg); border:1px solid #C9E4DA; color:#0C4F44;}
+  .callout.warn{background:var(--amber-bg); border:1px solid #ECD9B0; color:#6B4A0F;}
+  .callout b{font-weight:600;}
+  .callout-icon{font-size:16px; flex-shrink:0;}
+
+  /* code block */
+  pre.code{
+    background:var(--mono-bg); color:var(--mono-text); padding:16px 18px; border-radius:10px;
+    overflow-x:auto; font-family:'IBM Plex Mono', monospace; font-size:13px; line-height:1.65; margin:10px 0;
+  }
+  pre.code .kw{color:#8FE0C6;}
+  pre.code .cm{color:#7C8093; font-style:italic;}
+
+  /* CFG tree */
+  .cfg-tree{font-size:13px; margin:16px 0;}
+  .cfg-node{
+    display:inline-block; background:var(--paper-raised); border:1.5px solid var(--ink);
+    border-radius:8px; padding:8px 14px; font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+  }
+  .cfg-node.decision{border-color:var(--info); background:var(--info-bg); border-radius:20px;}
+  .cfg-node.action{border-color:var(--pass); background:var(--pass-bg);}
+  .cfg-node.terminal{border-color:var(--ink); background:var(--ink); color:#fff;}
+  .cfg-branch{
+    margin:10px 0 10px 24px; padding-left:18px; border-left:2px dashed var(--rule);
+  }
+  .cfg-branch-label{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-soft);
+    margin-bottom:6px; display:block;
+  }
+  .cfg-branch-label.yes{color:var(--pass);}
+  .cfg-branch-label.no{color:var(--red);}
+  .cfg-arrow{color:var(--ink-soft); font-family:'IBM Plex Mono', monospace; font-size:13px; margin:4px 0; display:block; padding-left:2px;}
+
+  /* node/edge tables */
+  .ne-table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  .ne-table th, .ne-table td{border:1px solid var(--rule); padding:8px 11px; text-align:left;}
+  .ne-table th{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:500;
+    font-size:10.5px; color:var(--ink-soft); text-transform:uppercase;
+  }
+  .ne-table code{font-family:'IBM Plex Mono', monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:11.5px;}
+
+  /* formula box */
+  .formula-box{
+    background:var(--paper); border:1px solid var(--rule); border-radius:10px;
+    padding:16px 20px; text-align:center; font-family:'IBM Plex Mono', monospace;
+    font-size:15px; color:var(--ink); margin:14px 0;
+  }
+  .formula-box .result{color:var(--pass); font-weight:700;}
+
+  /* test case table */
+  .tc-table{width:100%; border-collapse:collapse; font-size:13px;}
+  .tc-table th, .tc-table td{border:1px solid var(--rule); padding:9px 12px; text-align:left; vertical-align:top;}
+  .tc-table th{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:500;
+    font-size:10.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.03em;
+  }
+  .tc-table td.tval-t{color:var(--pass); font-weight:600;}
+  .tc-table td.tval-f{color:var(--red); font-weight:600;}
+  .tc-table code{font-family:'IBM Plex Mono', monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;}
+
+  /* coverage hierarchy nested */
+  .hierarchy{display:flex; justify-content:center; margin:20px 0;}
+  .hlevel{
+    border-radius:16px; padding:28px; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+  }
+  .hlevel.path{background:var(--red-bg); border:1.5px solid #F0C4B8; width:100%;}
+  .hlevel.branch{background:var(--amber-bg); border:1.5px solid #ECD9B0; width:78%; margin-top:14px;}
+  .hlevel.statement{background:var(--pass-bg); border:1.5px solid #C9E4DA; width:56%; margin-top:14px; margin-bottom:14px;}
+  .hlevel .htitle{font-weight:700; font-size:13.5px; margin-bottom:3px;}
+  .hlevel .hsub{font-size:11.5px; color:var(--ink-soft);}
+
+  /* pro-con */
+  .pc-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:680px){.pc-grid{grid-template-columns:1fr;}}
+  .pc-card{border-radius:12px; padding:18px 20px;}
+  .pc-card.pro{background:var(--pass-bg); border:1px solid #C9E4DA;}
+  .pc-card.con{background:var(--amber-bg); border:1px solid #ECD9B0;}
+  .pc-card h4{margin-top:0;}
+  .pc-card ul{margin:8px 0 0; padding-left:18px; font-size:13.5px;}
+  .pc-card li{margin-bottom:6px;}
+
+  .case-card{border:1px solid var(--rule); border-radius:12px; padding:20px 22px; background:var(--paper-raised);}
+  .case-card .case-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--info);
+    background:var(--info-bg); display:inline-block; padding:3px 9px; border-radius:100px; margin-bottom:10px;
+  }
+  .case-card p{font-size:13.5px; color:var(--ink-soft); margin-bottom:8px;}
+  .case-card .prompt-q{font-size:13.5px; color:var(--ink); font-weight:500; margin-top:12px;}
+  .case-card ul{font-size:13.5px; color:var(--ink-soft); margin:8px 0;}
+
+  details{
+    border:1px solid var(--rule); border-radius:10px; padding:14px 18px; margin-bottom:10px; background:var(--paper-raised);
+  }
+  summary{
+    cursor:pointer; font-size:14.5px; font-weight:500; list-style:none;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"+"; color:var(--pass); font-family:'IBM Plex Mono', monospace; font-size:16px;}
+  details[open] summary::after{content:"–";}
+  details[open] summary{margin-bottom:10px;}
+  .answer{font-size:13.5px; color:var(--ink-soft); border-top:1px solid var(--rule); padding-top:10px;}
+  .answer b{color:var(--pass);}
+
+  .task-card{background:var(--ink); color:#F2F1EA; border-radius:12px; padding:26px 28px;}
+  .task-card h3{color:#fff; margin-top:0;}
+  .task-card p{color:#D8D6CC; font-size:14px;}
+  .task-card pre.code{margin-top:12px;}
+  .rubric-table{width:100%; border-collapse:collapse; margin-top:14px; font-size:13px;}
+  .rubric-table th, .rubric-table td{
+    border:1px solid rgba(255,255,255,.15); padding:9px 12px; text-align:left; color:#D8D6CC;
+  }
+  .rubric-table th{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:#8FE0C6;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .deadline-tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:12px;
+    background:rgba(255,255,255,.1); padding:5px 10px; border-radius:100px; color:#F2F1EA; margin-top:16px;
+  }
+
+  .ref-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .ref-list li{font-size:13.5px; color:var(--ink-soft); padding-left:18px; position:relative;}
+  .ref-list li::before{content:"—"; position:absolute; left:0; color:var(--pass);}
+  .ref-list b{color:var(--ink);}
+
+  .summary-list{list-style:none; margin:0; padding:0; display:grid; gap:8px;}
+  .summary-list li{
+    display:flex; gap:10px; align-items:flex-start; font-size:14px;
+    background:var(--pass-bg); padding:10px 14px; border-radius:8px; color:#0C4F44;
+  }
+
+  footer{
+    border-top:1px solid var(--rule); padding-top:24px; margin-top:20px;
+    color:var(--ink-soft); font-size:13px; display:flex; justify-content:space-between;
+    flex-wrap:wrap; gap:8px;
+  }
+  .nav-next{
+    display:flex; justify-content:space-between; align-items:center; gap:16px;
+    border:1px solid var(--rule); border-radius:12px; padding:18px 22px; margin-top:40px;
+  }
+  .nav-next a{text-decoration:none; font-size:13.5px; color:var(--ink-soft);}
+  .nav-next .to-next{color:var(--pass); font-weight:500;}
+
+  @media (max-width:860px){
+    .sidebar{display:none;}
+    .wrap{padding:40px 20px 80px;}
+    h1{font-size:28px;}
+    .hlevel.branch{width:90%;}
+    .hlevel.statement{width:75%;}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <nav class="sidebar">
+    <a class="back-link" href="index.html">← Kembali ke Beranda</a>
+    <div class="brand-sub">software-testing / sesi-06</div>
+    <div class="brand-name">White-Box Testing</div>
+
+    <div class="nav-label">Isi Halaman</div>
+    <a class="toc-link" href="#pendahuluan">Pendahuluan</a>
+    <a class="toc-link" href="#tujuan">Tujuan Pembelajaran</a>
+    <a class="toc-link" href="#definisi">6.1 Definisi White-Box Testing</a>
+    <a class="toc-link" href="#cfg">6.2 Control Flow Graph</a>
+    <a class="toc-link" href="#statement">6.3 Statement Coverage</a>
+    <a class="toc-link" href="#branch">6.4 Branch Coverage</a>
+    <a class="toc-link" href="#path">6.5 Path Coverage &amp; Cyclomatic Complexity</a>
+    <a class="toc-link" href="#hirarki">6.6 Hirarki Kekuatan Coverage</a>
+    <a class="toc-link" href="#proscons">6.7 Kelebihan &amp; Keterbatasan</a>
+    <a class="toc-link" href="#studikasus">Latihan Kelas</a>
+    <a class="toc-link" href="#rangkuman">Rangkuman</a>
+    <a class="toc-link" href="#latihan">Latihan Pemahaman</a>
+    <a class="toc-link" href="#tugas">Tugas Sesi 6</a>
+    <a class="toc-link" href="#referensi">Referensi</a>
+  </nav>
+
+  <main>
+    <div class="wrap">
+
+      <section id="pendahuluan">
+        <div class="eyebrow">sesi-06 / 14</div>
+        <h1>White-Box Testing: Statement, Branch, Path Coverage</h1>
+        <p class="lead">Jika Sesi 5 merancang test case dari sudut pandang spesifikasi, sesi ini membalik sudut pandang: merancang test case dengan <b>melihat langsung struktur kode</b> untuk memastikan seberapa jauh baris, cabang, dan jalur eksekusi program benar-benar diuji.</p>
+        <div class="meta-row">
+          <span class="meta-chip">⏱ 50 menit</span>
+          <span class="meta-chip">🎯 CPMK-2, CPMK-3</span>
+          <span class="meta-chip">📖 3 referensi utama</span>
+        </div>
+      </section>
+
+      <section id="tujuan">
+        <h2>Tujuan Pembelajaran</h2>
+        <p class="sec-desc">Setelah mengikuti sesi ini, mahasiswa mampu:</p>
+        <div class="card">
+          <ul class="obj-list">
+            <li><span class="check">✓</span> Menjelaskan prinsip dasar White-Box Testing dan bedanya dengan Black-Box Testing.</li>
+            <li><span class="check">✓</span> Menggambarkan Control Flow Graph (CFG) dari potongan kode sederhana.</li>
+            <li><span class="check">✓</span> Menghitung dan merancang test case untuk mencapai Statement Coverage, Branch Coverage, dan Path Coverage.</li>
+            <li><span class="check">✓</span> Menghitung Cyclomatic Complexity menggunakan dua pendekatan rumus, dan mengaitkannya dengan jumlah minimum test case.</li>
+            <li><span class="check">✓</span> Menjelaskan hubungan hierarki kekuatan antara ketiga jenis coverage tersebut.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="definisi">
+        <div class="eyebrow">6.1</div>
+        <h2>Definisi White-Box Testing</h2>
+        <p><b>White-Box Testing</b> (disebut juga Structural Testing atau Glass-Box Testing) adalah pendekatan pengujian yang merancang test case berdasarkan <b>struktur internal kode</b> — baris program, percabangan logika, dan jalur eksekusi — bukan berdasarkan spesifikasi semata seperti Black-Box Testing (Sesi 5).</p>
+
+        <div class="callout info">
+          <span class="callout-icon">💡</span>
+          <span><b>Kontras dengan Black-Box:</b> Black-Box bertanya "apakah output benar untuk input tertentu, menurut spesifikasi?". White-Box bertanya "apakah baris/cabang/jalur kode ini benar-benar dieksekusi minimal satu kali oleh test suite saya?". Karena butuh melihat kode, White-Box Testing umumnya dilakukan oleh <b>developer</b> pada level <b>Unit Testing</b> (ingat kembali Sesi 4).</span>
+        </div>
+
+        <p>Ukuran keberhasilan White-Box Testing disebut <b>Code Coverage</b> — persentase elemen kode (baris, cabang, atau jalur) yang telah dieksekusi oleh test suite. Sesi ini membahas tiga level coverage yang paling umum: Statement, Branch, dan Path Coverage.</p>
+      </section>
+
+      <section id="cfg">
+        <div class="eyebrow">6.2</div>
+        <h2>Control Flow Graph (CFG)</h2>
+        <p>Sebelum menghitung coverage, kode program perlu digambarkan sebagai <b>Control Flow Graph</b> — diagram yang merepresentasikan setiap kemungkinan jalur eksekusi sebagai node (pernyataan/keputusan) yang dihubungkan oleh edge (alur kontrol).</p>
+
+        <h4>Contoh Kode: Menentukan Ongkos Kirim Gratis</h4>
+        <p style="font-size:13.5px; color:var(--ink-soft);">Kode ini akan dipakai sebagai contoh utama sepanjang sesi ini.</p>
+        <pre class="code"><span class="kw">function</span> cekOngkirGratis(berat, isMember):
+    gratisOngkir = <span class="kw">false</span>
+
+    <span class="kw">if</span> (berat >= 5):              <span class="cm">// D1</span>
+        gratisOngkir = <span class="kw">true</span>
+
+    <span class="kw">if</span> (isMember):               <span class="cm">// D2</span>
+        gratisOngkir = <span class="kw">true</span>
+
+    <span class="kw">return</span> gratisOngkir</pre>
+
+        <p>Kode ini memiliki <b>dua keputusan independen</b> (D1 dan D2) yang berjalan berurutan, bukan bersarang (nested). Berikut CFG-nya dalam bentuk pohon:</p>
+
+        <div class="cfg-tree">
+          <span class="cfg-node terminal">Mulai</span>
+          <span class="cfg-arrow">↓</span>
+          <span class="cfg-node decision">D1: berat ≥ 5 ?</span>
+          <div class="cfg-branch">
+            <span class="cfg-branch-label yes">YA →</span>
+            <span class="cfg-node action">gratisOngkir = true</span>
+          </div>
+          <span class="cfg-arrow">↓ &nbsp;(kedua cabang bertemu di sini)</span>
+          <span class="cfg-node decision">D2: isMember ?</span>
+          <div class="cfg-branch">
+            <span class="cfg-branch-label yes">YA →</span>
+            <span class="cfg-node action">gratisOngkir = true</span>
+          </div>
+          <span class="cfg-arrow">↓ &nbsp;(kedua cabang bertemu di sini)</span>
+          <span class="cfg-node terminal">return gratisOngkir</span>
+        </div>
+
+        <div class="card" style="margin-top:8px;">
+          <table class="ne-table">
+            <tr><th>Node</th><th>Keterangan</th></tr>
+            <tr><td><code>N1</code></td><td>Mulai / inisialisasi gratisOngkir = false</td></tr>
+            <tr><td><code>N2</code></td><td>Decision D1: berat ≥ 5?</td></tr>
+            <tr><td><code>N3</code></td><td>gratisOngkir = true (cabang YA dari D1)</td></tr>
+            <tr><td><code>N4</code></td><td>Decision D2: isMember?</td></tr>
+            <tr><td><code>N5</code></td><td>gratisOngkir = true (cabang YA dari D2)</td></tr>
+            <tr><td><code>N6</code></td><td>return gratisOngkir</td></tr>
+          </table>
+        </div>
+      </section>
+
+      <section id="statement">
+        <div class="eyebrow">6.3</div>
+        <h2>Statement Coverage</h2>
+        <p><b>Statement Coverage</b> mengukur persentase baris/pernyataan kode yang telah dieksekusi minimal satu kali oleh test suite.</p>
+
+        <div class="formula-box">
+          Statement Coverage = <span class="result">(Jumlah statement dieksekusi ÷ Total statement)</span> × 100%
+        </div>
+
+        <p>Untuk kode <code style="font-family:'IBM Plex Mono',monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px;">cekOngkirGratis</code> di atas, satu test case dengan <b>berat ≥ 5 DAN isMember = true</b> akan melewati N1 → N2 → N3 → N4 → N5 → N6 — <b>seluruh node/statement</b> dilalui dalam satu eksekusi.</p>
+
+        <div class="card">
+          <table class="tc-table">
+            <tr><th>Test Case</th><th>berat</th><th>isMember</th><th>Statement Dilalui</th><th>Coverage</th></tr>
+            <tr><td>TC-01</td><td>6</td><td class="tval-t">true</td><td>N1, N2, N3, N4, N5, N6</td><td class="tval-t">100%</td></tr>
+          </table>
+        </div>
+
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span><b>Kelemahan penting:</b> hanya dengan <b>satu test case</b>, Statement Coverage 100% sudah tercapai! Namun perhatikan — cabang <i>false</i> dari D1 dan D2 (yaitu skenario berat &lt; 5 atau isMember = false) <b>tidak pernah diuji sama sekali</b>. Inilah sebabnya Statement Coverage dianggap sebagai ukuran paling lemah di antara ketiga jenis coverage.</span>
+        </div>
+      </section>
+
+      <section id="branch">
+        <div class="eyebrow">6.4</div>
+        <h2>Branch Coverage (Decision Coverage)</h2>
+        <p><b>Branch Coverage</b> mengukur apakah setiap keputusan (decision) telah diuji pada <b>kedua kemungkinan hasil</b>-nya — true dan false — minimal satu kali oleh test suite.</p>
+
+        <div class="formula-box">
+          Branch Coverage = <span class="result">(Jumlah cabang dieksekusi ÷ Total cabang)</span> × 100%
+        </div>
+
+        <p>Kode kita memiliki 2 decision (D1, D2), masing-masing dengan 2 kemungkinan hasil → total <b>4 cabang</b> yang perlu diuji: D1-true, D1-false, D2-true, D2-false.</p>
+
+        <div class="card">
+          <table class="tc-table">
+            <tr><th>Test Case</th><th>berat</th><th>isMember</th><th>D1</th><th>D2</th></tr>
+            <tr><td>TC-01</td><td>6</td><td class="tval-t">true</td><td class="tval-t">TRUE</td><td class="tval-t">TRUE</td></tr>
+            <tr><td>TC-02</td><td>2</td><td class="tval-f">false</td><td class="tval-f">FALSE</td><td class="tval-f">FALSE</td></tr>
+          </table>
+        </div>
+
+        <div class="callout tip">
+          <span class="callout-icon">✓</span>
+          <span><b>Poin kunci:</b> hanya dengan <b>2 test case</b> (TC-01 dan TC-02), keempat cabang (D1-true, D1-false, D2-true, D2-false) sudah tercakup semua — sekaligus otomatis mencapai 100% Statement Coverage juga. Branch Coverage secara matematis selalu <b>lebih kuat atau setara</b> dengan Statement Coverage.</span>
+        </div>
+      </section>
+
+      <section id="path">
+        <div class="eyebrow">6.5</div>
+        <h2>Path Coverage dan Cyclomatic Complexity</h2>
+        <p><b>Path Coverage</b> mengukur apakah setiap <b>kombinasi jalur eksekusi</b> yang mungkin dari awal hingga akhir program telah diuji — bukan sekadar tiap cabang secara terpisah, melainkan tiap <i>kombinasi</i> cabang.</p>
+
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span><b>Peringatan penting:</b> menguji <i>seluruh kemungkinan kombinasi jalur secara harfiah</i> (disebut <i>all-path coverage</i>) seringkali <b>tidak praktis atau bahkan mustahil</b> — terutama jika ada perulangan (loop), jumlah kombinasi jalur bisa tak terhingga. Karena itu, dalam praktik nyata, "Path Coverage" hampir selalu merujuk pada <b>Basis Path Testing</b>: menguji sejumlah <i>minimum jalur yang secara linear independen</i>, yang jumlahnya ditentukan oleh <b>Cyclomatic Complexity</b>.</span>
+        </div>
+
+        <h4>Menghitung Cyclomatic Complexity — Dua Rumus</h4>
+        <p style="font-size:13.5px; color:var(--ink-soft);">McCabe (1976) mendefinisikan dua cara menghitung yang selalu menghasilkan angka sama untuk graf yang sama:</p>
+
+        <div class="formula-box">
+          V(G) = E − N + 2 &nbsp;&nbsp;|&nbsp;&nbsp; V(G) = Jumlah Decision Point + 1
+        </div>
+
+        <div class="card">
+          <table class="ne-table">
+            <tr><th>Variabel</th><th>Nilai pada Contoh Kita</th></tr>
+            <tr><td>N (jumlah node)</td><td><code>6</code> (N1–N6)</td></tr>
+            <tr><td>E (jumlah edge)</td><td><code>7</code> (N1→N2, N2→N3, N2→N4, N3→N4, N4→N5, N4→N6, N5→N6)</td></tr>
+            <tr><td>Rumus 1: V(G) = E − N + 2</td><td><code>7 − 6 + 2 = 3</code></td></tr>
+            <tr><td>Jumlah Decision Point</td><td><code>2</code> (D1 dan D2)</td></tr>
+            <tr><td>Rumus 2: V(G) = Decision Point + 1</td><td><code>2 + 1 = 3</code></td></tr>
+          </table>
+        </div>
+        <p style="font-size:12.5px; color:var(--ink-soft); margin-top:8px;">*Kedua rumus menghasilkan angka yang sama: <b>V(G) = 3</b>. Artinya, dibutuhkan minimal <b>3 test case dengan jalur yang berbeda secara linear</b> untuk mencapai basis path coverage.</p>
+
+        <h4>Menyusun 3 Basis Path</h4>
+        <p style="font-size:13.5px; color:var(--ink-soft);">Perhatikan bahwa secara kombinatorial, D1 dan D2 menghasilkan <b>4 kemungkinan jalur</b> (TT, TF, FT, FF). Namun cyclomatic complexity mengatakan hanya <b>3 jalur independen</b> yang dibutuhkan — jalur keempat dapat "diturunkan" sebagai kombinasi dari ketiga jalur lainnya, sehingga tidak menambah informasi struktural baru.</p>
+
+        <div class="card">
+          <table class="tc-table">
+            <tr><th>Test Case</th><th>berat</th><th>isMember</th><th>D1</th><th>D2</th><th>Jalur</th></tr>
+            <tr><td>TC-01</td><td>6</td><td class="tval-t">true</td><td class="tval-t">T</td><td class="tval-t">T</td><td>N1-N2-N3-N4-N5-N6</td></tr>
+            <tr><td>TC-02</td><td>2</td><td class="tval-f">false</td><td class="tval-f">F</td><td class="tval-f">F</td><td>N1-N2-N4-N6</td></tr>
+            <tr><td>TC-03</td><td>6</td><td class="tval-f">false</td><td class="tval-t">T</td><td class="tval-f">F</td><td>N1-N2-N3-N4-N6</td></tr>
+          </table>
+        </div>
+        <p style="font-size:12.5px; color:var(--ink-soft); margin-top:8px;">*Jalur ke-4 (berat &lt; 5, isMember = true → N1-N2-N4-N5-N6) tidak wajib diuji terpisah untuk basis path coverage, karena strukturnya sudah terwakili secara linear oleh kombinasi TC-01, TC-02, dan TC-03. Dalam praktiknya, banyak tim tetap menguji jalur ke-4 ini juga sebagai bagian dari Branch Coverage — sekali lagi menunjukkan bagaimana ketiga jenis coverage saling melengkapi.</p>
+      </section>
+
+      <section id="hirarki">
+        <div class="eyebrow">6.6</div>
+        <h2>Hierarki Kekuatan Coverage</h2>
+        <p>Dari ketiga contoh di atas, terlihat pola yang konsisten: <b>1 test case</b> cukup untuk Statement Coverage, <b>2 test case</b> untuk Branch Coverage, dan <b>3 test case</b> untuk Path/Basis Coverage. Ini bukan kebetulan — ada hubungan hierarki matematis di antara ketiganya.</p>
+
+        <div class="hierarchy">
+          <div class="hlevel path">
+            <div class="htitle">Path Coverage</div>
+            <div class="hsub">paling kuat &amp; menyeluruh</div>
+            <div class="hlevel branch">
+              <div class="htitle">Branch Coverage</div>
+              <div class="hsub">mencakup Statement Coverage</div>
+              <div class="hlevel statement">
+                <div class="htitle">Statement Coverage</div>
+                <div class="hsub">paling lemah &amp; paling mudah dicapai</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout tip">
+          <span class="callout-icon">✓</span>
+          <span><b>Poin kunci:</b> 100% Path Coverage otomatis memenuhi 100% Branch Coverage, dan 100% Branch Coverage otomatis memenuhi 100% Statement Coverage — namun <b>tidak berlaku sebaliknya</b>. Inilah alasan Statement Coverage saja tidak boleh dijadikan satu-satunya tolok ukur kualitas unit testing.</span>
+        </div>
+      </section>
+
+      <section id="proscons">
+        <div class="eyebrow">6.7</div>
+        <h2>Kelebihan dan Keterbatasan White-Box Testing</h2>
+        <div class="pc-grid">
+          <div class="pc-card pro">
+            <h4>Kelebihan</h4>
+            <ul>
+              <li>Menjamin cakupan struktur kode secara terukur (coverage %)</li>
+              <li>Efektif menemukan dead code (kode yang tidak pernah dieksekusi)</li>
+              <li>Menemukan bug logika internal yang tidak terlihat dari spesifikasi</li>
+              <li>Dapat diotomasi dan diintegrasikan ke tools coverage (JaCoCo, Coverage.py, dll.)</li>
+            </ul>
+          </div>
+          <div class="pc-card con">
+            <h4>Keterbatasan</h4>
+            <ul>
+              <li>Memerlukan akses dan pemahaman terhadap kode sumber</li>
+              <li>Coverage 100% tidak menjamin tidak ada bug — hanya menjamin baris/cabang dieksekusi, bukan menjamin logika bisnisnya benar</li>
+              <li>Tidak menguji kesesuaian dengan kebutuhan pengguna (perlu dilengkapi Black-Box Testing)</li>
+              <li>Path Coverage penuh bisa sangat mahal/mustahil pada kode dengan banyak loop dan decision</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="studikasus">
+        <h2>Latihan Kelas: Analisis Kode Diskon</h2>
+        <p class="sec-desc">Kerjakan berpasangan selama 10 menit, lalu bahas bersama.</p>
+        <div class="case-card">
+          <span class="case-tag">Latihan</span>
+          <h4 style="margin-top:0;">Fungsi Penentu Diskon Member</h4>
+          <pre class="code"><span class="kw">function</span> hitungDiskon(totalBelanja, isMemberPremium):
+    diskon = 0
+
+    <span class="kw">if</span> (totalBelanja > 500000):
+        diskon = 0.10
+    <span class="kw">else</span>:
+        diskon = 0.05
+
+    <span class="kw">if</span> (isMemberPremium):
+        diskon = diskon + 0.05
+
+    <span class="kw">return</span> diskon</pre>
+          <ul>
+            <li>Gambarkan Control Flow Graph dari kode di atas (identifikasi node dan decision point).</li>
+            <li>Hitung Cyclomatic Complexity menggunakan kedua rumus.</li>
+            <li>Rancang test case minimum untuk mencapai 100% Statement Coverage.</li>
+            <li>Rancang test case minimum untuk mencapai 100% Branch Coverage.</li>
+            <li>Rancang basis path test case sesuai jumlah Cyclomatic Complexity yang dihitung.</li>
+          </ul>
+          <p class="prompt-q">Bandingkan hasil kerja Anda dengan pasangan lain — apakah jumlah test case yang dihasilkan sama?</p>
+        </div>
+      </section>
+
+      <section id="rangkuman">
+        <h2>Rangkuman</h2>
+        <ul class="summary-list">
+          <li><span>✓</span> White-Box Testing merancang test case berdasarkan struktur internal kode, biasanya dilakukan developer pada level Unit Testing.</li>
+          <li><span>✓</span> Control Flow Graph (CFG) merepresentasikan kode sebagai node (pernyataan/keputusan) dan edge (alur kontrol) sebagai dasar penghitungan coverage.</li>
+          <li><span>✓</span> Statement Coverage mengukur baris kode yang dieksekusi — paling mudah dicapai namun paling lemah.</li>
+          <li><span>✓</span> Branch Coverage mengukur kedua hasil (true/false) tiap keputusan — lebih kuat dan otomatis mencakup Statement Coverage.</li>
+          <li><span>✓</span> Path Coverage dalam praktiknya berarti Basis Path Testing, dengan jumlah minimum jalur = Cyclomatic Complexity (V(G) = E − N + 2 = Decision Point + 1).</li>
+          <li><span>✓</span> Ketiga jenis coverage membentuk hierarki kekuatan: Path ⊇ Branch ⊇ Statement, tapi tidak berlaku sebaliknya.</li>
+        </ul>
+      </section>
+
+      <section id="latihan">
+        <h2>Latihan Pemahaman Mandiri</h2>
+        <p class="sec-desc">Klik tiap soal untuk melihat kunci jawaban dan penjelasannya.</p>
+
+        <details>
+          <summary>1. Sebuah fungsi memiliki 3 decision point independen (tidak bersarang). Berapa Cyclomatic Complexity-nya, dan berapa minimum basis path yang dibutuhkan?</summary>
+          <div class="answer"><b>Jawaban:</b> V(G) = Decision Point + 1 = 3 + 1 = <b>4</b>. Dibutuhkan minimal <b>4 basis path</b> (test case dengan jalur berbeda secara linear) untuk mencapai path/basis coverage.</div>
+        </details>
+
+        <details>
+          <summary>2. Mengapa 100% Statement Coverage tidak menjamin tidak ada bug pada kode?</summary>
+          <div class="answer"><b>Jawaban:</b> Karena Statement Coverage hanya memastikan setiap baris dieksekusi minimal satu kali — tidak memastikan kedua hasil (true/false) dari setiap keputusan telah diuji. Bug yang hanya muncul pada cabang false suatu decision bisa saja tidak pernah terdeteksi meski Statement Coverage sudah 100%.</div>
+        </details>
+
+        <details>
+          <summary>3. Apa perbedaan mendasar antara "Path Coverage" secara harfiah (all-path) dengan "Basis Path Testing"?</summary>
+          <div class="answer"><b>Jawaban:</b> All-path coverage menuntut pengujian <i>seluruh</i> kemungkinan kombinasi jalur eksekusi, yang jumlahnya bisa sangat besar atau tak terhingga (terutama dengan loop) — sehingga sering tidak praktis. Basis Path Testing hanya menguji jumlah <i>minimum jalur yang secara linear independen</i> sebanyak Cyclomatic Complexity, yang secara struktural sudah cukup mewakili seluruh kombinasi logis tanpa harus menguji semuanya secara harfiah.</div>
+        </details>
+
+        <details>
+          <summary>4. Jika sebuah test suite sudah mencapai 100% Branch Coverage, apakah otomatis mencapai 100% Statement Coverage juga? Jelaskan.</summary>
+          <div class="answer"><b>Jawaban:</b> Ya, otomatis. Karena untuk menguji kedua hasil (true/false) dari suatu keputusan, seluruh pernyataan pada kedua cabang tersebut pasti ikut tereksekusi. Ini sesuai hierarki kekuatan coverage: Branch Coverage selalu lebih kuat atau setara dengan Statement Coverage, tidak pernah lebih lemah.</div>
+        </details>
+      </section>
+
+      <section id="tugas">
+        <h2>Tugas Sesi 6</h2>
+        <div class="task-card">
+          <h3>Analisis Coverage &amp; Cyclomatic Complexity</h3>
+          <p>Diberikan potongan kode berikut (fungsi penentu status pengiriman berdasarkan berat paket dan jenis layanan):</p>
+          <pre class="code"><span class="kw">function</span> tentukanBiayaKirim(berat, jenisLayanan):
+    biaya = 0
+
+    <span class="kw">if</span> (jenisLayanan == <span class="cm">"reguler"</span>):
+        <span class="kw">if</span> (berat &lt;= 3):
+            biaya = 10000
+        <span class="kw">else</span>:
+            biaya = 10000 + (berat - 3) * 2000
+    <span class="kw">else</span>:
+        <span class="kw">if</span> (berat &lt;= 3):
+            biaya = 20000
+        <span class="kw">else</span>:
+            biaya = 20000 + (berat - 3) * 3000
+
+    <span class="kw">return</span> biaya</pre>
+          <p style="color:#F2F1EA;">Kerjakan dan susun dalam laporan:</p>
+          <p style="color:#F2F1EA;">
+            (1) Gambarkan Control Flow Graph lengkap dengan penomoran node<br>
+            (2) Hitung Cyclomatic Complexity menggunakan kedua rumus (V=E−N+2 dan V=Decision Point+1), tunjukkan hasil keduanya sama<br>
+            (3) Rancang test case minimum untuk 100% Statement Coverage<br>
+            (4) Rancang test case minimum untuk 100% Branch Coverage<br>
+            (5) Rancang basis path test case sejumlah Cyclomatic Complexity yang dihitung, lengkap dengan nilai input dan jalur yang dilalui
+          </p>
+
+          <table class="rubric-table">
+            <tr><th>Kriteria</th><th>Bobot</th></tr>
+            <tr><td>Ketepatan Control Flow Graph</td><td>20%</td></tr>
+            <tr><td>Ketepatan perhitungan Cyclomatic Complexity</td><td>20%</td></tr>
+            <tr><td>Ketepatan test case Statement &amp; Branch Coverage</td><td>30%</td></tr>
+            <tr><td>Ketepatan basis path test case</td><td>20%</td></tr>
+            <tr><td>Kejelasan struktur &amp; penulisan</td><td>10%</td></tr>
+          </table>
+
+          <span class="deadline-tag">⏳ Dikumpulkan sebelum Sesi 7 dimulai</span>
+        </div>
+      </section>
+
+      <section id="referensi">
+        <h2>Referensi Sesi Ini</h2>
+        <div class="card">
+          <ul class="ref-list">
+            <li><b>Jorgensen, P.C.</b> — Software Testing: A Craftsman's Approach, bab mengenai Control Flow Graph dan structural testing techniques.</li>
+            <li><b>McCabe, T.J.</b> — "A Complexity Measure", IEEE Transactions on Software Engineering, 1976 — rujukan asli Cyclomatic Complexity.</li>
+            <li><b>Black, R., Graham, D., van Veenendaal, E.</b> — Foundations of Software Testing: ISTQB Certification, bagian white-box test design techniques.</li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="nav-next">
+        <a href="sesi5.html">← Sesi 5: Black-Box Testing</a>
+        <a class="to-next" href="index.html#silabus">Sesi 7: Test Planning &amp; Dokumentasi →</a>
+      </div>
+
+      <footer>
+        <span>Mata Kuliah Software Testing · 3 SKS</span>
+        <span>Dosen Pengampu: Philipus Suryo Subandoro</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>
