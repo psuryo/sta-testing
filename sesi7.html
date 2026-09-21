@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sesi 7 — Test Planning &amp; Dokumentasi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAFAF7;
+    --paper-raised:#FFFFFF;
+    --ink:#1A1D29;
+    --ink-soft:#565B6E;
+    --rule:#E1DED4;
+    --pass:#0F6B5C;
+    --pass-bg:#E9F3EF;
+    --info:#2C5F8A;
+    --info-bg:#EAF1F7;
+    --amber:#A9761E;
+    --amber-bg:#FBF2E1;
+    --red:#B5432E;
+    --red-bg:#FBEDE9;
+    --mono-bg:#1A1D29;
+    --mono-text:#D9F2E6;
+    --sidebar-w:250px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+
+  .shell{display:flex; min-height:100vh;}
+
+  .sidebar{
+    width:var(--sidebar-w); flex-shrink:0;
+    background:var(--ink); color:#EDEBE0;
+    padding:32px 22px 40px;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .back-link{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'IBM Plex Mono', monospace; font-size:12px;
+    color:#8FE0C6; text-decoration:none; margin-bottom:26px;
+  }
+  .back-link:hover{text-decoration:underline;}
+  .brand-sub{
+    font-family:'IBM Plex Mono', monospace; font-size:11px;
+    color:#7C8093; margin-bottom:4px;
+  }
+  .brand-name{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:17px; color:#fff; margin-bottom:24px;
+  }
+  .nav-label{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.08em; color:#7C8093; margin-bottom:10px;
+  }
+  .toc-link{
+    display:block; font-size:13px; color:#C9C7BC; text-decoration:none;
+    padding:6px 0 6px 12px; border-left:2px solid #3A3D4A;
+    transition:all .15s;
+  }
+  .toc-link:hover{color:#fff; border-left-color:#4FE3B8;}
+
+  main{flex:1; min-width:0;}
+  .wrap{max-width:800px; margin:0 auto; padding:56px 32px 100px;}
+
+  section{margin-bottom:56px; scroll-margin-top:24px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--pass);
+    letter-spacing:.06em; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:"$"; color:var(--ink-soft);}
+  h1{
+    font-family:'Space Grotesk', sans-serif; font-size:36px; font-weight:700;
+    margin:0 0 14px; letter-spacing:-.01em; line-height:1.15;
+  }
+  h2{
+    font-family:'Space Grotesk', sans-serif; font-size:23px; font-weight:600; margin:0 0 6px;
+  }
+  h3{
+    font-family:'Space Grotesk', sans-serif; font-size:18px; font-weight:600; margin:26px 0 10px;
+  }
+  h4{font-size:15px; font-weight:600; margin:18px 0 8px;}
+  .lead{color:var(--ink-soft); font-size:16px; max-width:620px;}
+  .sec-desc{color:var(--ink-soft); font-size:14.5px; margin:0 0 20px;}
+  p{font-size:14.5px; margin:0 0 12px;}
+
+  .meta-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:20px;}
+  .meta-chip{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; background:var(--paper-raised);
+    border:1px solid var(--rule); padding:6px 12px; border-radius:100px; color:var(--ink-soft);
+  }
+
+  .card{
+    background:var(--paper-raised); border:1px solid var(--rule);
+    border-radius:12px; padding:22px 24px;
+  }
+
+  .obj-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .obj-list li{display:flex; gap:12px; align-items:flex-start; font-size:14.5px;}
+  .check{
+    flex-shrink:0; width:20px; height:20px; border-radius:5px; background:var(--pass-bg);
+    color:var(--pass); display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; margin-top:2px;
+  }
+
+  .callout{
+    display:flex; gap:12px; align-items:flex-start; border-radius:10px;
+    padding:14px 16px; font-size:14px; margin:16px 0;
+  }
+  .callout.info{background:var(--info-bg); border:1px solid #C7DBEA; color:#1E4560;}
+  .callout.tip{background:var(--pass-bg); border:1px solid #C9E4DA; color:#0C4F44;}
+  .callout.warn{background:var(--amber-bg); border:1px solid #ECD9B0; color:#6B4A0F;}
+  .callout b{font-weight:600;}
+  .callout-icon{font-size:16px; flex-shrink:0;}
+
+  /* hierarchy funnel: Test Plan -> Scenario -> Case */
+  .funnel{display:flex; flex-direction:column; align-items:center; gap:0; margin:20px 0;}
+  .funnel-level{
+    border-radius:10px; padding:16px 24px; text-align:center; width:100%;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .funnel-level.plan{background:var(--ink); color:#fff; width:100%;}
+  .funnel-level.scenario{background:var(--info-bg); border:1px solid #C7DBEA; width:80%; margin-top:10px;}
+  .funnel-level.case{background:var(--pass-bg); border:1px solid #C9E4DA; width:60%; margin-top:10px;}
+  .funnel-level .ftitle{font-weight:700; font-size:14px;}
+  .funnel-level .fsub{font-size:12px; opacity:.85; margin-top:2px;}
+  .funnel-arrow{font-family:'IBM Plex Mono', monospace; color:var(--ink-soft); font-size:13px; margin:2px 0;}
+
+  /* IEEE 829 component list */
+  .component-list{list-style:none; margin:0; padding:0; display:grid; gap:0;}
+  .component-item{
+    display:grid; grid-template-columns:28px 1fr; gap:14px;
+    padding:14px 0; border-bottom:1px solid var(--rule);
+  }
+  .component-item:last-child{border-bottom:none;}
+  .component-num{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--pass); font-weight:600;
+  }
+  .component-title{font-weight:600; font-size:14px; margin-bottom:3px;}
+  .component-desc{color:var(--ink-soft); font-size:13px;}
+
+  /* test case detail card */
+  .tc-detail{border:1px solid var(--rule); border-radius:12px; overflow:hidden; background:var(--paper-raised);}
+  .tc-detail-header{
+    background:var(--ink); color:#fff; padding:12px 18px; font-family:'IBM Plex Mono', monospace;
+    font-size:13px; display:flex; justify-content:space-between; align-items:center;
+  }
+  .tc-detail table{width:100%; border-collapse:collapse; font-size:13px;}
+  .tc-detail th, .tc-detail td{border:1px solid var(--rule); padding:9px 14px; text-align:left; vertical-align:top;}
+  .tc-detail th{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:500;
+    font-size:11px; color:var(--ink-soft); text-transform:uppercase; width:160px;
+  }
+  .tc-detail td code{font-family:'IBM Plex Mono', monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;}
+  .tc-detail ol{margin:0; padding-left:18px;}
+  .tc-detail ol li{margin-bottom:4px;}
+
+  /* traceability matrix */
+  .trace-table{width:100%; border-collapse:collapse; font-size:13px;}
+  .trace-table th, .trace-table td{border:1px solid var(--rule); padding:9px 12px; text-align:left;}
+  .trace-table th{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:500;
+    font-size:10.5px; color:var(--ink-soft); text-transform:uppercase;
+  }
+  .trace-table code{font-family:'IBM Plex Mono', monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;}
+  .trace-table .status-covered{color:var(--pass); font-weight:600;}
+
+  /* best practice do/dont */
+  .dodont-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:680px){.dodont-grid{grid-template-columns:1fr;}}
+  .dodont-card{border-radius:12px; padding:18px 20px;}
+  .dodont-card.do{background:var(--pass-bg); border:1px solid #C9E4DA;}
+  .dodont-card.dont{background:var(--red-bg); border:1px solid #F0C4B8;}
+  .dodont-card h4{margin-top:0;}
+  .dodont-card ul{margin:8px 0 0; padding-left:18px; font-size:13.5px;}
+  .dodont-card li{margin-bottom:6px;}
+
+  .case-card{border:1px solid var(--rule); border-radius:12px; padding:20px 22px; background:var(--paper-raised);}
+  .case-card .case-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--info);
+    background:var(--info-bg); display:inline-block; padding:3px 9px; border-radius:100px; margin-bottom:10px;
+  }
+  .case-card p{font-size:13.5px; color:var(--ink-soft); margin-bottom:8px;}
+  .case-card .prompt-q{font-size:13.5px; color:var(--ink); font-weight:500; margin-top:12px;}
+  .case-card ul{font-size:13.5px; color:var(--ink-soft); margin:8px 0;}
+
+  details{
+    border:1px solid var(--rule); border-radius:10px; padding:14px 18px; margin-bottom:10px; background:var(--paper-raised);
+  }
+  summary{
+    cursor:pointer; font-size:14.5px; font-weight:500; list-style:none;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"+"; color:var(--pass); font-family:'IBM Plex Mono', monospace; font-size:16px;}
+  details[open] summary::after{content:"–";}
+  details[open] summary{margin-bottom:10px;}
+  .answer{font-size:13.5px; color:var(--ink-soft); border-top:1px solid var(--rule); padding-top:10px;}
+  .answer b{color:var(--pass);}
+
+  .task-card{background:var(--ink); color:#F2F1EA; border-radius:12px; padding:26px 28px;}
+  .task-card h3{color:#fff; margin-top:0;}
+  .task-card p{color:#D8D6CC; font-size:14px;}
+  .rubric-table{width:100%; border-collapse:collapse; margin-top:14px; font-size:13px;}
+  .rubric-table th, .rubric-table td{
+    border:1px solid rgba(255,255,255,.15); padding:9px 12px; text-align:left; color:#D8D6CC;
+  }
+  .rubric-table th{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:#8FE0C6;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .deadline-tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:12px;
+    background:rgba(255,255,255,.1); padding:5px 10px; border-radius:100px; color:#F2F1EA; margin-top:16px;
+  }
+
+  .ref-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .ref-list li{font-size:13.5px; color:var(--ink-soft); padding-left:18px; position:relative;}
+  .ref-list li::before{content:"—"; position:absolute; left:0; color:var(--pass);}
+  .ref-list b{color:var(--ink);}
+
+  .summary-list{list-style:none; margin:0; padding:0; display:grid; gap:8px;}
+  .summary-list li{
+    display:flex; gap:10px; align-items:flex-start; font-size:14px;
+    background:var(--pass-bg); padding:10px 14px; border-radius:8px; color:#0C4F44;
+  }
+
+  footer{
+    border-top:1px solid var(--rule); padding-top:24px; margin-top:20px;
+    color:var(--ink-soft); font-size:13px; display:flex; justify-content:space-between;
+    flex-wrap:wrap; gap:8px;
+  }
+  .nav-next{
+    display:flex; justify-content:space-between; align-items:center; gap:16px;
+    border:1px solid var(--rule); border-radius:12px; padding:18px 22px; margin-top:40px;
+  }
+  .nav-next a{text-decoration:none; font-size:13.5px; color:var(--ink-soft);}
+  .nav-next .to-next{color:var(--pass); font-weight:500;}
+
+  @media (max-width:860px){
+    .sidebar{display:none;}
+    .wrap{padding:40px 20px 80px;}
+    h1{font-size:28px;}
+    .funnel-level.scenario{width:92%;}
+    .funnel-level.case{width:80%;}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <nav class="sidebar">
+    <a class="back-link" href="index.html">← Kembali ke Beranda</a>
+    <div class="brand-sub">software-testing / sesi-07</div>
+    <div class="brand-name">Test Planning &amp; Dokumentasi</div>
+
+    <div class="nav-label">Isi Halaman</div>
+    <a class="toc-link" href="#pendahuluan">Pendahuluan</a>
+    <a class="toc-link" href="#tujuan">Tujuan Pembelajaran</a>
+    <a class="toc-link" href="#hierarki">7.1 Hierarki Dokumentasi Testing</a>
+    <a class="toc-link" href="#testplan">7.2 Test Plan</a>
+    <a class="toc-link" href="#testscenario">7.3 Test Scenario</a>
+    <a class="toc-link" href="#testcase">7.4 Test Case</a>
+    <a class="toc-link" href="#traceability">7.5 Traceability Matrix</a>
+    <a class="toc-link" href="#bestpractice">7.6 Praktik Terbaik Menulis Test Case</a>
+    <a class="toc-link" href="#studikasus">Latihan Kelas</a>
+    <a class="toc-link" href="#rangkuman">Rangkuman</a>
+    <a class="toc-link" href="#latihan">Latihan Pemahaman</a>
+    <a class="toc-link" href="#tugas">Tugas Sesi 7</a>
+    <a class="toc-link" href="#referensi">Referensi</a>
+  </nav>
+
+  <main>
+    <div class="wrap">
+
+      <section id="pendahuluan">
+        <div class="eyebrow">sesi-07 / 14</div>
+        <h1>Test Planning &amp; Dokumentasi</h1>
+        <p class="lead">Sebelum teknik-teknik yang sudah dipelajari (EP, BVA, Decision Table, Statement/Branch/Path Coverage) bisa dieksekusi secara terorganisir, semuanya perlu didokumentasikan dalam format yang bisa dipahami seluruh tim — dari Test Plan tingkat proyek hingga Test Case tingkat eksekusi harian.</p>
+        <div class="meta-row">
+          <span class="meta-chip">⏱ 50 menit</span>
+          <span class="meta-chip">🎯 CPMK-2, CPMK-3</span>
+          <span class="meta-chip">📖 3 referensi utama</span>
+        </div>
+      </section>
+
+      <section id="tujuan">
+        <h2>Tujuan Pembelajaran</h2>
+        <p class="sec-desc">Setelah mengikuti sesi ini, mahasiswa mampu:</p>
+        <div class="card">
+          <ul class="obj-list">
+            <li><span class="check">✓</span> Menjelaskan hierarki dan hubungan antara Test Plan, Test Scenario, dan Test Case.</li>
+            <li><span class="check">✓</span> Menyusun Test Plan mengikuti struktur standar IEEE 829.</li>
+            <li><span class="check">✓</span> Menulis Test Scenario yang jelas dari sebuah requirement.</li>
+            <li><span class="check">✓</span> Menulis Test Case lengkap dengan seluruh komponennya (ID, precondition, steps, expected result, dll).</li>
+            <li><span class="check">✓</span> Menyusun Traceability Matrix untuk memastikan setiap requirement telah tercakup oleh test case.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="hierarki">
+        <div class="eyebrow">7.1</div>
+        <h2>Hierarki Dokumentasi Testing</h2>
+        <p>Ketiga istilah — Test Plan, Test Scenario, dan Test Case — sering tertukar padahal berada di tingkat abstraksi yang berbeda, dari paling umum (strategi) hingga paling detail (langkah eksekusi).</p>
+
+        <div class="funnel">
+          <div class="funnel-level plan">
+            <div class="ftitle">Test Plan</div>
+            <div class="fsub">Dokumen strategi tingkat proyek — apa, siapa, kapan, bagaimana testing dilakukan</div>
+          </div>
+          <div class="funnel-arrow">↓ diturunkan menjadi banyak</div>
+          <div class="funnel-level scenario">
+            <div class="ftitle">Test Scenario</div>
+            <div class="fsub">Satu alur/kondisi tingkat tinggi yang perlu diuji — "apa yang diuji"</div>
+          </div>
+          <div class="funnel-arrow">↓ diturunkan menjadi banyak</div>
+          <div class="funnel-level case">
+            <div class="ftitle">Test Case</div>
+            <div class="fsub">Langkah eksekusi rinci, input, dan hasil yang diharapkan — "bagaimana cara mengujinya"</div>
+          </div>
+        </div>
+
+        <div class="callout info">
+          <span class="callout-icon">💡</span>
+          <span><b>Analogi sederhana:</b> Test Plan adalah "peta perjalanan" satu proyek testing secara keseluruhan, Test Scenario adalah "tujuan perhentian" yang ingin dicapai, dan Test Case adalah "petunjuk arah langkah demi langkah" menuju tujuan tersebut.</span>
+        </div>
+      </section>
+
+      <section id="testplan">
+        <div class="eyebrow">7.2</div>
+        <h2>Test Plan — Struktur Standar IEEE 829</h2>
+        <p><b>Test Plan</b> adalah dokumen level tertinggi yang mendefinisikan strategi, ruang lingkup, sumber daya, dan jadwal seluruh aktivitas testing dalam satu proyek. Standar <b>IEEE 829</b> mendefinisikan komponen-komponen berikut sebagai struktur baku yang diakui secara luas di industri.</p>
+
+        <div class="card">
+          <ul class="component-list">
+            <li class="component-item">
+              <span class="component-num">01</span>
+              <div><div class="component-title">Test Plan Identifier</div><div class="component-desc">Nomor/kode unik dokumen untuk keperluan version control.</div></div>
+            </li>
+            <li class="component-item">
+              <span class="component-num">02</span>
+              <div><div class="component-title">Introduction</div><div class="component-desc">Ringkasan proyek, tujuan testing, dan referensi dokumen terkait (requirement, desain).</div></div>
+            </li>
+            <li class="component-item">
+              <span class="component-num">03</span>
+              <div><div class="component-title">Test Items</div><div class="component-desc">Daftar modul/fitur/komponen perangkat lunak yang akan diuji.</div></div>
+            </li>
+            <li class="component-item">
+              <span class="component-num">04</span>
+              <div><div class="component-title">Features to be Tested / Not Tested</div><div class="component-desc">Batasan eksplisit — fitur mana yang masuk cakupan pengujian dan mana yang secara sadar dikecualikan.</div></div>
+            </li>
+            <li class="component-item">
+              <span class="component-num">05</span>
+              <div><div class="component-title">Approach / Test Strategy</div><div class="component-desc">Pendekatan pengujian yang dipakai — level testing, teknik (EP/BVA/Decision Table/dll.), manual vs otomatis.</div></div>
+            </li>
+            <li class="component-item">
+              <span class="component-num">06</span>
+              <div><div class="component-title">Pass / Fail Criteria</div><div class="component-desc">Kriteria objektif kapan suatu test case dinyatakan lulus atau gagal.</div></div>
+            </li>
+            <li class="component-item">
+              <span class="component-num">07</span>
+              <div><div class="component-title">Suspension &amp; Resumption Criteria</div><div class="component-desc">Kondisi yang menyebabkan testing dihentikan sementara (mis. bug blocker) dan syarat untuk melanjutkannya kembali.</div></div>
+            </li>
+            <li class="component-item">
+              <span class="component-num">08</span>
+              <div><div class="component-title">Test Deliverables</div><div class="component-desc">Daftar dokumen yang akan dihasilkan — Test Scenario, Test Case, Bug Report, Test Summary Report.</div></div>
+            </li>
+            <li class="component-item">
+              <span class="component-num">09</span>
+              <div><div class="component-title">Environmental Needs</div><div class="component-desc">Kebutuhan perangkat keras, perangkat lunak, dan konfigurasi lingkungan pengujian.</div></div>
+            </li>
+            <li class="component-item">
+              <span class="component-num">10</span>
+              <div><div class="component-title">Staffing &amp; Responsibilities</div><div class="component-desc">Siapa mengerjakan apa — tester, test lead, developer yang terlibat.</div></div>
+            </li>
+            <li class="component-item">
+              <span class="component-num">11</span>
+              <div><div class="component-title">Schedule</div><div class="component-desc">Jadwal setiap aktivitas testing, selaras dengan jadwal SDLC proyek secara keseluruhan.</div></div>
+            </li>
+            <li class="component-item">
+              <span class="component-num">12</span>
+              <div><div class="component-title">Risks &amp; Contingencies</div><div class="component-desc">Risiko yang mungkin menghambat testing (mis. keterlambatan build) dan rencana mitigasinya.</div></div>
+            </li>
+            <li class="component-item">
+              <span class="component-num">13</span>
+              <div><div class="component-title">Approvals</div><div class="component-desc">Tanda tangan/persetujuan pihak berwenang (test manager, project manager, klien) sebelum testing dimulai.</div></div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span><b>Catatan praktis:</b> tidak semua organisasi memakai ketiga belas komponen ini secara lengkap dan formal — tim Agile misalnya sering menyederhanakan Test Plan menjadi dokumen ringkas per sprint. Namun memahami struktur lengkap IEEE 829 penting sebagai fondasi, terutama untuk proyek yang membutuhkan dokumentasi formal (mis. sektor perbankan, kesehatan, pemerintahan — ingat kembali Contract/Regulation Acceptance di Sesi 4).</span>
+        </div>
+      </section>
+
+      <section id="testscenario">
+        <div class="eyebrow">7.3</div>
+        <h2>Test Scenario</h2>
+        <p><b>Test Scenario</b> adalah pernyataan tingkat tinggi tentang <i>apa</i> yang akan diuji — biasanya diturunkan langsung dari satu requirement atau satu fitur, tanpa merinci langkah teknis eksekusinya.</p>
+
+        <h4>Contoh: Requirement Fitur Login</h4>
+        <div class="callout info">
+          <span class="callout-icon">📄</span>
+          <span><b>Requirement:</b> "Pengguna harus dapat login menggunakan email dan password yang terdaftar. Sistem menolak login setelah 3 kali percobaan gagal berturut-turut dalam 10 menit."</span>
+        </div>
+
+        <p style="font-size:13.5px; color:var(--ink-soft);">Dari satu requirement ini, dapat diturunkan beberapa Test Scenario:</p>
+        <div class="card">
+          <table class="trace-table">
+            <tr><th>ID</th><th>Test Scenario</th></tr>
+            <tr><td><code>TS-01</code></td><td>Verifikasi pengguna dapat login dengan kredensial yang benar</td></tr>
+            <tr><td><code>TS-02</code></td><td>Verifikasi sistem menolak login dengan password salah</td></tr>
+            <tr><td><code>TS-03</code></td><td>Verifikasi sistem mengunci akun setelah 3 kali percobaan gagal</td></tr>
+            <tr><td><code>TS-04</code></td><td>Verifikasi akun dapat login kembali setelah 10 menit masa penguncian berakhir</td></tr>
+          </table>
+        </div>
+
+        <div class="callout tip">
+          <span class="callout-icon">✓</span>
+          <span><b>Ciri Test Scenario yang baik:</b> ditulis dari sudut pandang pengguna/bisnis ("verifikasi bahwa..."), tidak menyebutkan data spesifik atau langkah klik demi klik — detail semacam itu baru muncul satu tingkat di bawahnya, yaitu pada Test Case.</span>
+        </div>
+      </section>
+
+      <section id="testcase">
+        <div class="eyebrow">7.4</div>
+        <h2>Test Case</h2>
+        <p><b>Test Case</b> adalah dokumen paling rinci — berisi langkah eksekusi spesifik, data input konkret, dan hasil yang diharapkan, sehingga siapa pun (bahkan yang tidak menulisnya) dapat menjalankannya dan menyimpulkan hasilnya secara objektif.</p>
+
+        <h4>Contoh Test Case dari TS-03</h4>
+        <div class="tc-detail">
+          <div class="tc-detail-header">
+            <span>TC-03-01</span>
+            <span>Status: Draft</span>
+          </div>
+          <table>
+            <tr><th>Test Case ID</th><td><code>TC-03-01</code></td></tr>
+            <tr><th>Test Scenario</th><td>TS-03 — Verifikasi sistem mengunci akun setelah 3 kali percobaan gagal</td></tr>
+            <tr><th>Precondition</th><td>Akun dengan email <code>budi@email.com</code> terdaftar dan berstatus aktif (belum terkunci)</td></tr>
+            <tr><th>Test Steps</th><td>
+              <ol>
+                <li>Buka halaman login aplikasi</li>
+                <li>Masukkan email <code>budi@email.com</code> dan password salah <code>Salah123</code>, klik "Masuk"</li>
+                <li>Ulangi langkah 2 sekali lagi (percobaan ke-2)</li>
+                <li>Ulangi langkah 2 sekali lagi (percobaan ke-3)</li>
+                <li>Amati respons sistem setelah percobaan ke-3</li>
+              </ol>
+            </td></tr>
+            <tr><th>Test Data</th><td>Email: <code>budi@email.com</code> · Password salah: <code>Salah123</code></td></tr>
+            <tr><th>Expected Result</th><td>Setelah percobaan ke-3 gagal, sistem menampilkan pesan "Akun Anda dikunci sementara selama 10 menit" dan menolak percobaan login berikutnya meski password benar</td></tr>
+            <tr><th>Actual Result</th><td><i>(diisi tester setelah eksekusi)</i></td></tr>
+            <tr><th>Status</th><td><i>Pass / Fail (diisi tester setelah eksekusi)</i></td></tr>
+          </table>
+        </div>
+
+        <div class="callout warn">
+          <span class="callout-icon">⚠</span>
+          <span><b>Kesalahan umum mahasiswa:</b> menulis Test Case tanpa data konkret (mis. "masukkan email dan password yang salah" tanpa menyebut nilai spesifik). Test Case yang baik harus bisa dieksekusi ulang persis sama oleh orang lain — inilah yang disebut sifat <b>repeatable</b>.</span>
+        </div>
+      </section>
+
+      <section id="traceability">
+        <div class="eyebrow">7.5</div>
+        <h2>Traceability Matrix</h2>
+        <p><b>Traceability Matrix</b> adalah tabel yang memetakan setiap requirement ke Test Case yang mengujinya — memastikan tidak ada requirement yang "terlewat" tanpa pengujian, dan sebaliknya, tidak ada Test Case yang dibuat tanpa alasan yang jelas terhadap requirement mana pun.</p>
+
+        <div class="card">
+          <table class="trace-table">
+            <tr><th>Requirement ID</th><th>Deskripsi Requirement</th><th>Test Scenario</th><th>Test Case</th><th>Status</th></tr>
+            <tr><td><code>REQ-01</code></td><td>Login dengan kredensial benar</td><td>TS-01</td><td>TC-01-01</td><td class="status-covered">Tercakup</td></tr>
+            <tr><td><code>REQ-02</code></td><td>Tolak login password salah</td><td>TS-02</td><td>TC-02-01</td><td class="status-covered">Tercakup</td></tr>
+            <tr><td><code>REQ-03</code></td><td>Kunci akun setelah 3x gagal</td><td>TS-03</td><td>TC-03-01</td><td class="status-covered">Tercakup</td></tr>
+            <tr><td><code>REQ-04</code></td><td>Buka kunci otomatis setelah 10 menit</td><td>TS-04</td><td style="color:var(--red); font-weight:600;">—</td><td style="color:var(--red); font-weight:600;">Belum Tercakup</td></tr>
+          </table>
+        </div>
+
+        <div class="callout tip">
+          <span class="callout-icon">✓</span>
+          <span><b>Manfaat utama:</b> pada contoh di atas, Traceability Matrix segera memperlihatkan bahwa <b>REQ-04 belum memiliki Test Case</b> — celah yang mudah terlewat jika hanya mengandalkan daftar Test Case tanpa pemetaan balik ke requirement asalnya.</span>
+        </div>
+      </section>
+
+      <section id="bestpractice">
+        <div class="eyebrow">7.6</div>
+        <h2>Praktik Terbaik Menulis Test Case</h2>
+        <div class="dodont-grid">
+          <div class="dodont-card do">
+            <h4>Lakukan</h4>
+            <ul>
+              <li>Gunakan data konkret dan spesifik, bukan deskripsi umum</li>
+              <li>Tulis satu Test Case untuk satu tujuan pengujian yang jelas</li>
+              <li>Sertakan precondition agar tester lain tahu kondisi awal yang dibutuhkan</li>
+              <li>Tulis expected result yang bisa diverifikasi objektif (bukan "berjalan dengan baik")</li>
+              <li>Beri ID yang konsisten dan mudah ditelusuri ke Test Scenario &amp; requirement</li>
+            </ul>
+          </div>
+          <div class="dodont-card dont">
+            <h4>Hindari</h4>
+            <ul>
+              <li>Menggabungkan banyak tujuan pengujian berbeda dalam satu Test Case</li>
+              <li>Menulis langkah yang ambigu (mis. "coba beberapa input yang salah")</li>
+              <li>Melewatkan expected result yang terukur dan spesifik</li>
+              <li>Mengabaikan precondition sehingga hasil eksekusi antar tester bisa berbeda</li>
+              <li>Membuat Test Case tanpa mengaitkannya ke requirement/Test Scenario asal</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="studikasus">
+        <h2>Latihan Kelas: Dari Requirement ke Test Case</h2>
+        <p class="sec-desc">Kerjakan berpasangan selama 12 menit, lalu bahas bersama.</p>
+        <div class="case-card">
+          <span class="case-tag">Latihan</span>
+          <h4 style="margin-top:0;">Requirement Fitur Reset Password</h4>
+          <p><b>Requirement:</b> "Pengguna yang lupa password dapat meminta reset password melalui email terdaftar. Tautan reset password berlaku selama 15 menit sejak dikirim, dan hanya dapat digunakan satu kali."</p>
+          <ul>
+            <li>Turunkan minimal 3 Test Scenario dari requirement di atas.</li>
+            <li>Pilih satu Test Scenario, lalu tulis Test Case lengkap (ID, precondition, steps, test data, expected result) mengikuti format pada bagian 7.4.</li>
+            <li>Buat baris Traceability Matrix yang menghubungkan requirement ini ke Test Scenario dan Test Case yang Anda buat.</li>
+          </ul>
+          <p class="prompt-q">Tukar hasil kerja dengan pasangan lain — coba eksekusi Test Case mereka secara mental, apakah langkahnya cukup jelas untuk diikuti tanpa bertanya lebih lanjut?</p>
+        </div>
+      </section>
+
+      <section id="rangkuman">
+        <h2>Rangkuman</h2>
+        <ul class="summary-list">
+          <li><span>✓</span> Test Plan, Test Scenario, dan Test Case membentuk hierarki dari yang paling strategis hingga paling rinci.</li>
+          <li><span>✓</span> Test Plan mengikuti struktur standar IEEE 829, mencakup strategi, ruang lingkup, sumber daya, jadwal, hingga kriteria pass/fail.</li>
+          <li><span>✓</span> Test Scenario adalah pernyataan tingkat tinggi "apa yang diuji", diturunkan langsung dari requirement.</li>
+          <li><span>✓</span> Test Case adalah langkah eksekusi rinci dan repeatable — precondition, steps, test data, dan expected result harus konkret dan spesifik.</li>
+          <li><span>✓</span> Traceability Matrix memastikan setiap requirement memiliki Test Case yang mengujinya, mencegah celah pengujian yang terlewat.</li>
+        </ul>
+      </section>
+
+      <section id="latihan">
+        <h2>Latihan Pemahaman Mandiri</h2>
+        <p class="sec-desc">Klik tiap soal untuk melihat kunci jawaban dan penjelasannya.</p>
+
+        <details>
+          <summary>1. Apa perbedaan mendasar antara Test Scenario dan Test Case?</summary>
+          <div class="answer"><b>Jawaban:</b> Test Scenario adalah pernyataan tingkat tinggi tentang <i>apa</i> yang diuji (mis. "verifikasi login dengan kredensial benar"), tanpa detail teknis. Test Case adalah turunan rincinya — berisi langkah eksekusi spesifik, data konkret, dan hasil yang diharapkan, sehingga bisa dieksekusi ulang oleh siapa pun secara konsisten.</div>
+        </details>
+
+        <details>
+          <summary>2. Mengapa Traceability Matrix penting meski semua Test Case sudah ditulis dengan baik?</summary>
+          <div class="answer"><b>Jawaban:</b> Karena menulis Test Case yang baik secara individual tidak menjamin <i>cakupan menyeluruh</i> terhadap seluruh requirement. Traceability Matrix memetakan balik dari requirement ke Test Case, sehingga celah seperti requirement yang belum memiliki Test Case sama sekali dapat segera terlihat.</div>
+        </details>
+
+        <details>
+          <summary>3. Sebuah Test Case ditulis: "Masukkan beberapa kombinasi username dan password yang salah, lalu amati apakah sistem menampilkan pesan error yang sesuai." Apa masalah utama pada penulisan ini?</summary>
+          <div class="answer"><b>Jawaban:</b> Test Case ini tidak memiliki data konkret ("beberapa kombinasi" tidak spesifik) dan expected result yang tidak terukur ("pesan error yang sesuai" tidak menyebutkan pesan apa persisnya). Akibatnya, Test Case ini tidak repeatable — dua tester berbeda bisa mengeksekusi dan menyimpulkan hasil yang berbeda pula.</div>
+        </details>
+
+        <details>
+          <summary>4. Komponen IEEE 829 mana yang mendefinisikan kapan testing harus dihentikan sementara akibat ditemukannya bug kritis?</summary>
+          <div class="answer"><b>Jawaban:</b> <b>Suspension &amp; Resumption Criteria</b> — komponen ini secara spesifik mendefinisikan kondisi yang menyebabkan testing dihentikan sementara dan syarat yang harus dipenuhi sebelum testing dapat dilanjutkan kembali.</div>
+        </details>
+      </section>
+
+      <section id="tugas">
+        <h2>Tugas Sesi 7</h2>
+        <div class="task-card">
+          <h3>Menyusun Test Plan, Test Scenario, dan Test Case Lengkap</h3>
+          <p>Pilih satu fitur dari aplikasi fiktif yang sudah Anda rancang pada Tugas Sesi 5 (atau fitur baru jika ingin berganti topik). Susun dokumentasi testing lengkap yang mencakup:</p>
+          <p style="color:#F2F1EA;">
+            (1) Test Plan ringkas mengikuti struktur IEEE 829 (boleh menyederhanakan komponen yang kurang relevan, namun cantumkan minimal: Introduction, Test Items, Features to be Tested/Not Tested, Approach, Pass/Fail Criteria, Schedule)<br>
+            (2) Minimal 4 Test Scenario yang diturunkan dari requirement fitur tersebut<br>
+            (3) Minimal 2 Test Case lengkap (salah satunya dari Test Scenario yang melibatkan kondisi negatif/gagal)<br>
+            (4) Traceability Matrix yang menghubungkan requirement → Test Scenario → Test Case
+          </p>
+
+          <table class="rubric-table">
+            <tr><th>Kriteria</th><th>Bobot</th></tr>
+            <tr><td>Kelengkapan &amp; ketepatan struktur Test Plan</td><td>25%</td></tr>
+            <tr><td>Ketepatan &amp; kejelasan Test Scenario</td><td>20%</td></tr>
+            <tr><td>Kelengkapan &amp; sifat repeatable Test Case</td><td>30%</td></tr>
+            <tr><td>Ketepatan Traceability Matrix</td><td>15%</td></tr>
+            <tr><td>Kejelasan struktur &amp; penulisan</td><td>10%</td></tr>
+          </table>
+
+          <span class="deadline-tag">⏳ Dikumpulkan sebelum UTS</span>
+        </div>
+      </section>
+
+      <section id="referensi">
+        <h2>Referensi Sesi Ini</h2>
+        <div class="card">
+          <ul class="ref-list">
+            <li><b>IEEE Std 829-2008</b> — IEEE Standard for Software and System Test Documentation.</li>
+            <li><b>Black, R., Graham, D., van Veenendaal, E.</b> — Foundations of Software Testing: ISTQB Certification, bab mengenai test documentation dan test management.</li>
+            <li><b>Jorgensen, P.C.</b> — Software Testing: A Craftsman's Approach, bagian mengenai test planning dan dokumentasi pengujian.</li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="nav-next">
+        <a href="sesi6.html">← Sesi 6: White-Box Testing</a>
+        <a class="to-next" href="index.html#silabus">Sesi 8: UTS →</a>
+      </div>
+
+      <footer>
+        <span>Mata Kuliah Software Testing · 3 SKS</span>
+        <span>Dosen Pengampu: Philipus Suryo Subandoro</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>
