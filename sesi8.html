@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sesi 8 — Unit Testing (JUnit) &amp; Proyek Lintas Mata Kuliah</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAFAF7;
+    --paper-raised:#FFFFFF;
+    --ink:#1A1D29;
+    --ink-soft:#565B6E;
+    --rule:#E1DED4;
+    --pass:#0F6B5C;
+    --pass-bg:#E9F3EF;
+    --info:#2C5F8A;
+    --info-bg:#EAF1F7;
+    --amber:#A9761E;
+    --amber-bg:#FBF2E1;
+    --red:#B5432E;
+    --red-bg:#FBEDE9;
+    --mono-bg:#1A1D29;
+    --mono-text:#D9F2E6;
+    --sidebar-w:250px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+
+  .shell{display:flex; min-height:100vh;}
+
+  .sidebar{
+    width:var(--sidebar-w); flex-shrink:0;
+    background:var(--ink); color:#EDEBE0;
+    padding:32px 22px 40px;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .back-link{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'IBM Plex Mono', monospace; font-size:12px;
+    color:#8FE0C6; text-decoration:none; margin-bottom:26px;
+  }
+  .back-link:hover{text-decoration:underline;}
+  .brand-sub{
+    font-family:'IBM Plex Mono', monospace; font-size:11px;
+    color:#7C8093; margin-bottom:4px;
+  }
+  .brand-name{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:17px; color:#fff; margin-bottom:24px;
+  }
+  .nav-label{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.08em; color:#7C8093; margin-bottom:10px;
+  }
+  .toc-link{
+    display:block; font-size:13px; color:#C9C7BC; text-decoration:none;
+    padding:6px 0 6px 12px; border-left:2px solid #3A3D4A;
+    transition:all .15s;
+  }
+  .toc-link:hover{color:#fff; border-left-color:#4FE3B8;}
+
+  main{flex:1; min-width:0;}
+  .wrap{max-width:800px; margin:0 auto; padding:56px 32px 100px;}
+
+  section{margin-bottom:56px; scroll-margin-top:24px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--pass);
+    letter-spacing:.06em; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:"$"; color:var(--ink-soft);}
+  h1{
+    font-family:'Space Grotesk', sans-serif; font-size:36px; font-weight:700;
+    margin:0 0 14px; letter-spacing:-.01em; line-height:1.15;
+  }
+  h2{
+    font-family:'Space Grotesk', sans-serif; font-size:23px; font-weight:600; margin:0 0 6px;
+  }
+  h3{
+    font-family:'Space Grotesk', sans-serif; font-size:18px; font-weight:600; margin:26px 0 10px;
+  }
+  h4{font-size:15px; font-weight:600; margin:18px 0 8px;}
+  .lead{color:var(--ink-soft); font-size:16px; max-width:620px;}
+  .sec-desc{color:var(--ink-soft); font-size:14.5px; margin:0 0 20px;}
+  p{font-size:14.5px; margin:0 0 12px;}
+
+  .meta-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:20px;}
+  .meta-chip{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; background:var(--paper-raised);
+    border:1px solid var(--rule); padding:6px 12px; border-radius:100px; color:var(--ink-soft);
+  }
+
+  .card{
+    background:var(--paper-raised); border:1px solid var(--rule);
+    border-radius:12px; padding:22px 24px;
+  }
+
+  .obj-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .obj-list li{display:flex; gap:12px; align-items:flex-start; font-size:14.5px;}
+  .check{
+    flex-shrink:0; width:20px; height:20px; border-radius:5px; background:var(--pass-bg);
+    color:var(--pass); display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; margin-top:2px;
+  }
+
+  .callout{
+    display:flex; gap:12px; align-items:flex-start; border-radius:10px;
+    padding:14px 16px; font-size:14px; margin:16px 0;
+  }
+  .callout.info{background:var(--info-bg); border:1px solid #C7DBEA; color:#1E4560;}
+  .callout.tip{background:var(--pass-bg); border:1px solid #C9E4DA; color:#0C4F44;}
+  .callout.warn{background:var(--amber-bg); border:1px solid #ECD9B0; color:#6B4A0F;}
+  .callout b{font-weight:600;}
+  .callout-icon{font-size:16px; flex-shrink:0;}
+
+  /* hierarchy funnel: Test Plan -> Scenario -> Case */
+  .funnel{display:flex; flex-direction:column; align-items:center; gap:0; margin:20px 0;}
+  .funnel-level{
+    border-radius:10px; padding:16px 24px; text-align:center; width:100%;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .funnel-level.plan{background:var(--ink); color:#fff; width:100%;}
+  .funnel-level.scenario{background:var(--info-bg); border:1px solid #C7DBEA; width:80%; margin-top:10px;}
+  .funnel-level.case{background:var(--pass-bg); border:1px solid #C9E4DA; width:60%; margin-top:10px;}
+  .funnel-level .ftitle{font-weight:700; font-size:14px;}
+  .funnel-level .fsub{font-size:12px; opacity:.85; margin-top:2px;}
+  .funnel-arrow{font-family:'IBM Plex Mono', monospace; color:var(--ink-soft); font-size:13px; margin:2px 0;}
+
+  /* IEEE 829 component list */
+  .component-list{list-style:none; margin:0; padding:0; display:grid; gap:0;}
+  .component-item{
+    display:grid; grid-template-columns:28px 1fr; gap:14px;
+    padding:14px 0; border-bottom:1px solid var(--rule);
+  }
+  .component-item:last-child{border-bottom:none;}
+  .component-num{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--pass); font-weight:600;
+  }
+  .component-title{font-weight:600; font-size:14px; margin-bottom:3px;}
+  .component-desc{color:var(--ink-soft); font-size:13px;}
+
+  /* test case detail card */
+  .tc-detail{border:1px solid var(--rule); border-radius:12px; overflow:hidden; background:var(--paper-raised);}
+  .tc-detail-header{
+    background:var(--ink); color:#fff; padding:12px 18px; font-family:'IBM Plex Mono', monospace;
+    font-size:13px; display:flex; justify-content:space-between; align-items:center;
+  }
+  .tc-detail table{width:100%; border-collapse:collapse; font-size:13px;}
+  .tc-detail th, .tc-detail td{border:1px solid var(--rule); padding:9px 14px; text-align:left; vertical-align:top;}
+  .tc-detail th{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:500;
+    font-size:11px; color:var(--ink-soft); text-transform:uppercase; width:160px;
+  }
+  .tc-detail td code{font-family:'IBM Plex Mono', monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;}
+  .tc-detail ol{margin:0; padding-left:18px;}
+  .tc-detail ol li{margin-bottom:4px;}
+
+  /* traceability matrix */
+  .trace-table{width:100%; border-collapse:collapse; font-size:13px;}
+  .trace-table th, .trace-table td{border:1px solid var(--rule); padding:9px 12px; text-align:left;}
+  .trace-table th{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:500;
+    font-size:10.5px; color:var(--ink-soft); text-transform:uppercase;
+  }
+  .trace-table code{font-family:'IBM Plex Mono', monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;}
+  .trace-table .status-covered{color:var(--pass); font-weight:600;}
+
+  /* best practice do/dont */
+  .dodont-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:680px){.dodont-grid{grid-template-columns:1fr;}}
+  .dodont-card{border-radius:12px; padding:18px 20px;}
+  .dodont-card.do{background:var(--pass-bg); border:1px solid #C9E4DA;}
+  .dodont-card.dont{background:var(--red-bg); border:1px solid #F0C4B8;}
+  .dodont-card h4{margin-top:0;}
+  .dodont-card ul{margin:8px 0 0; padding-left:18px; font-size:13.5px;}
+  .dodont-card li{margin-bottom:6px;}
+
+  .case-card{border:1px solid var(--rule); border-radius:12px; padding:20px 22px; background:var(--paper-raised);}
+  .case-card .case-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--info);
+    background:var(--info-bg); display:inline-block; padding:3px 9px; border-radius:100px; margin-bottom:10px;
+  }
+  .case-card p{font-size:13.5px; color:var(--ink-soft); margin-bottom:8px;}
+  .case-card .prompt-q{font-size:13.5px; color:var(--ink); font-weight:500; margin-top:12px;}
+  .case-card ul{font-size:13.5px; color:var(--ink-soft); margin:8px 0;}
+
+  details{
+    border:1px solid var(--rule); border-radius:10px; padding:14px 18px; margin-bottom:10px; background:var(--paper-raised);
+  }
+  summary{
+    cursor:pointer; font-size:14.5px; font-weight:500; list-style:none;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"+"; color:var(--pass); font-family:'IBM Plex Mono', monospace; font-size:16px;}
+  details[open] summary::after{content:"–";}
+  details[open] summary{margin-bottom:10px;}
+  .answer{font-size:13.5px; color:var(--ink-soft); border-top:1px solid var(--rule); padding-top:10px;}
+  .answer b{color:var(--pass);}
+
+  .task-card{background:var(--ink); color:#F2F1EA; border-radius:12px; padding:26px 28px;}
+  .task-card h3{color:#fff; margin-top:0;}
+  .task-card p{color:#D8D6CC; font-size:14px;}
+  .rubric-table{width:100%; border-collapse:collapse; margin-top:14px; font-size:13px;}
+  .rubric-table th, .rubric-table td{
+    border:1px solid rgba(255,255,255,.15); padding:9px 12px; text-align:left; color:#D8D6CC;
+  }
+  .rubric-table th{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:#8FE0C6;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .deadline-tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:12px;
+    background:rgba(255,255,255,.1); padding:5px 10px; border-radius:100px; color:#F2F1EA; margin-top:16px;
+  }
+
+  .ref-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .ref-list li{font-size:13.5px; color:var(--ink-soft); padding-left:18px; position:relative;}
+  .ref-list li::before{content:"—"; position:absolute; left:0; color:var(--pass);}
+  .ref-list b{color:var(--ink);}
+
+  .summary-list{list-style:none; margin:0; padding:0; display:grid; gap:8px;}
+  .summary-list li{
+    display:flex; gap:10px; align-items:flex-start; font-size:14px;
+    background:var(--pass-bg); padding:10px 14px; border-radius:8px; color:#0C4F44;
+  }
+
+  footer{
+    border-top:1px solid var(--rule); padding-top:24px; margin-top:20px;
+    color:var(--ink-soft); font-size:13px; display:flex; justify-content:space-between;
+    flex-wrap:wrap; gap:8px;
+  }
+  .nav-next{
+    display:flex; justify-content:space-between; align-items:center; gap:16px;
+    border:1px solid var(--rule); border-radius:12px; padding:18px 22px; margin-top:40px;
+  }
+  .nav-next a{text-decoration:none; font-size:13.5px; color:var(--ink-soft);}
+  .nav-next .to-next{color:var(--pass); font-weight:500;}
+
+  @media (max-width:860px){
+    .sidebar{display:none;}
+    .wrap{padding:40px 20px 80px;}
+    h1{font-size:28px;}
+    .funnel-level.scenario{width:92%;}
+    .funnel-level.case{width:80%;}
+  }
+  .code-block{background:#1F2420; color:#E8E6DA; border-radius:10px; padding:14px 18px; overflow-x:auto; font-family:'IBM Plex Mono',monospace; font-size:12.5px; line-height:1.6; margin:12px 0; white-space:pre;}
+  .code-block .c{color:#8A9A8F;}
+  p code, li code, td code{font-family:'IBM Plex Mono',monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;}
+</style>
+</head>
+<body>
+<body>
+<div class="shell">
+  <nav class="sidebar">
+    <a class="back-link" href="index.html">← Kembali ke Beranda</a>
+    <div class="brand-sub">software-testing / sesi-08</div>
+    <div class="brand-name">Unit Testing (JUnit) &amp; Proyek Lintas Matkul</div>
+    <div class="nav-label">Isi Halaman</div>
+    <a class="toc-link" href="#pendahuluan">Pendahuluan</a>
+    <a class="toc-link" href="#tujuan">Tujuan Pembelajaran</a>
+    <a class="toc-link" href="#konsep">8.1 Konsep Unit Testing</a>
+    <a class="toc-link" href="#anatomi">8.2 Anatomi Test JUnit 5</a>
+    <a class="toc-link" href="#assertion">8.3 Assertion &amp; Exception</a>
+    <a class="toc-link" href="#param">8.4 Parameterized Test</a>
+    <a class="toc-link" href="#praktik">8.5 Praktik Terbaik (FIRST)</a>
+    <a class="toc-link" href="#studikasus">Latihan Kelas</a>
+    <a class="toc-link" href="#rangkuman">Rangkuman</a>
+    <a class="toc-link" href="#latihan">Latihan Pemahaman</a>
+    <a class="toc-link" href="#tugas">Tugas Sesi 8</a>
+    <a class="toc-link" href="#proyek">Proyek Lintas Mata Kuliah</a>
+    <a class="toc-link" href="#referensi">Referensi</a>
+  </nav>
+  <main>
+    <div class="wrap">
+
+      <section id="pendahuluan">
+        <div class="eyebrow">sesi-08 / 14</div>
+        <h1>Unit Testing (Tools: JUnit)</h1>
+        <p class="lead">Setelah memahami cara merencanakan dan mendokumentasikan pengujian, kini saatnya mengeksekusi pengujian pada level terkecil: unit. Sesi ini memperkenalkan JUnit 5 sebagai framework unit testing Java, lalu ditutup dengan pengumuman proyek lintas mata kuliah Web Service × Software Testing.</p>
+        <div class="meta-row">
+          <span class="meta-chip">⏱ 50 menit</span>
+          <span class="meta-chip">🎯 CPMK-3, CPMK-4</span>
+          <span class="meta-chip">🚀 Kick-off Proyek</span>
+        </div>
+      </section>
+
+      <section id="tujuan">
+        <h2>Tujuan Pembelajaran</h2>
+        <p class="sec-desc">Setelah mengikuti sesi ini, mahasiswa mampu:</p>
+        <div class="card"><ul class="obj-list">
+          <li><span class="check">✓</span> Menjelaskan posisi unit testing pada test level dan manfaatnya.</li>
+          <li><span class="check">✓</span> Menulis test class JUnit 5 dengan anotasi <code>@Test</code>, <code>@BeforeEach</code>, dan <code>@AfterEach</code>.</li>
+          <li><span class="check">✓</span> Memakai assertion, <code>assertThrows</code>, dan <code>@ParameterizedTest</code>.</li>
+          <li><span class="check">✓</span> Menerapkan pola Arrange–Act–Assert dan prinsip FIRST.</li>
+          <li><span class="check">✓</span> Memahami skema, timeline, dan rubrik proyek lintas mata kuliah.</li>
+        </ul></div>
+      </section>
+
+      <section id="konsep">
+        <div class="eyebrow">8.1</div>
+        <h2>Konsep Unit Testing</h2>
+        <p><b>Unit testing</b> menguji bagian terkecil kode yang dapat diuji (method atau class) secara terisolasi, biasanya ditulis oleh developer sendiri. Pada piramida pengujian, unit test berada di dasar: jumlahnya paling banyak, berjalan paling cepat, dan paling murah untuk dipelihara.</p>
+        <div class="card"><ul class="component-list">
+          <li class="component-item"><span class="component-num">01</span><div><div class="component-title">Umpan balik cepat</div><div class="component-desc">Bug terdeteksi dalam hitungan detik, tepat di lokasi kode yang berubah.</div></div></li>
+          <li class="component-item"><span class="component-num">02</span><div><div class="component-title">Jaring pengaman refactoring</div><div class="component-desc">Perubahan kode dapat dilakukan dengan percaya diri karena regresi segera terlihat.</div></div></li>
+          <li class="component-item"><span class="component-num">03</span><div><div class="component-title">Dokumentasi hidup</div><div class="component-desc">Test menunjukkan perilaku yang diharapkan dari sebuah method.</div></div></li>
+        </ul></div>
+        <div class="callout info"><span class="callout-icon">💡</span><span><b>Hubungan dengan sesi sebelumnya:</b> teknik EP dan BVA (sesi 5) menentukan <i>data</i> apa yang diuji, sedangkan Statement/Branch Coverage (sesi 6) mengukur <i>seberapa banyak</i> kode yang tersentuh. JUnit adalah alat untuk mengeksekusi keduanya secara otomatis.</span></div>
+      </section>
+
+      <section id="anatomi">
+        <div class="eyebrow">8.2</div>
+        <h2>Anatomi Test JUnit 5</h2>
+        <p>Contoh class yang diuji — menghitung diskon berdasarkan total belanja:</p>
+        <div class="code-block"><span class="c">// DiscountCalculator.java</span>
+public class DiscountCalculator {
+    public double apply(double total) {
+        if (total &lt; 0) throw new IllegalArgumentException("Total negatif");
+        if (total &gt;= 500_000) return total * 0.90;   <span class="c">// diskon 10%</span>
+        return total;
+    }
+}</div>
+        <p>Test class-nya, memakai pola <b>Arrange–Act–Assert</b>:</p>
+        <div class="code-block">import org.junit.jupiter.api.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+class DiscountCalculatorTest {
+    private DiscountCalculator calc;
+
+    @BeforeEach
+    void setUp() { calc = new DiscountCalculator(); }   <span class="c">// Arrange (dijalankan sebelum tiap test)</span>
+
+    @Test
+    @DisplayName("Total tepat 500.000 mendapat diskon 10%")
+    void diskonDiBatasAtas() {
+        double hasil = calc.apply(500_000);               <span class="c">// Act</span>
+        assertEquals(450_000, hasil, 0.001);              <span class="c">// Assert</span>
+    }
+
+    @Test
+    void tanpaDiskonDiBawahBatas() {
+        assertEquals(499_999, calc.apply(499_999), 0.001);
+    }
+}</div>
+        <div class="card"><table class="trace-table">
+          <tr><th>Anotasi</th><th>Fungsi</th></tr>
+          <tr><td><code>@Test</code></td><td>Menandai method sebagai test</td></tr>
+          <tr><td><code>@BeforeEach</code> / <code>@AfterEach</code></td><td>Dijalankan sebelum / sesudah setiap test (setup &amp; cleanup)</td></tr>
+          <tr><td><code>@BeforeAll</code> / <code>@AfterAll</code></td><td>Dijalankan sekali per class (method harus <code>static</code>)</td></tr>
+          <tr><td><code>@DisplayName</code></td><td>Nama test yang mudah dibaca di laporan</td></tr>
+          <tr><td><code>@Disabled</code></td><td>Menonaktifkan test sementara</td></tr>
+        </table></div>
+        <div class="callout tip"><span class="callout-icon">✓</span><span>Perhatikan contoh di atas: nilai 500.000 dan 499.999 berasal dari <b>Boundary Value Analysis</b> — batas diskon dan nilai tepat di bawahnya.</span></div>
+      </section>
+
+      <section id="assertion">
+        <div class="eyebrow">8.3</div>
+        <h2>Assertion &amp; Pengujian Exception</h2>
+        <div class="card"><table class="trace-table">
+          <tr><th>Assertion</th><th>Kegunaan</th></tr>
+          <tr><td><code>assertEquals(expected, actual)</code></td><td>Nilai aktual sama dengan yang diharapkan (urutan: expected dulu)</td></tr>
+          <tr><td><code>assertTrue / assertFalse</code></td><td>Kondisi boolean</td></tr>
+          <tr><td><code>assertNull / assertNotNull</code></td><td>Pengecekan null</td></tr>
+          <tr><td><code>assertThrows(Ex.class, ...)</code></td><td>Kode harus melempar exception tertentu</td></tr>
+          <tr><td><code>assertAll(...)</code></td><td>Mengelompokkan beberapa assertion, semua dilaporkan meski ada yang gagal</td></tr>
+        </table></div>
+        <div class="code-block">@Test
+void totalNegatifDitolak() {
+    IllegalArgumentException ex = assertThrows(
+        IllegalArgumentException.class, () -&gt; calc.apply(-1));
+    assertEquals("Total negatif", ex.getMessage());
+}</div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><span><b>Skenario negatif wajib diuji.</b> Test yang hanya mencakup jalur sukses (happy path) memberi rasa aman palsu — sama seperti pada Test Case di sesi 7.</span></div>
+      </section>
+
+      <section id="param">
+        <div class="eyebrow">8.4</div>
+        <h2>Parameterized Test</h2>
+        <p>Satu logika test dijalankan dengan banyak data — cocok untuk hasil EP/BVA yang berupa tabel nilai.</p>
+        <div class="code-block">@ParameterizedTest(name = "total {0} → {1}")
+@CsvSource({"0, 0", "499999, 499999", "500000, 450000", "1000000, 900000"})
+void hitungDiskon(double total, double diharapkan) {
+    assertEquals(diharapkan, calc.apply(total), 0.001);
+}</div>
+        <p style="font-size:13.5px; color:var(--ink-soft);">Dependensi Maven: <code>org.junit.jupiter:junit-jupiter</code> (versi 5.x) dan <code>junit-jupiter-params</code> untuk parameterized test. Jalankan dengan <code>mvn test</code> atau dari IDE.</p>
+      </section>
+
+      <section id="praktik">
+        <div class="eyebrow">8.5</div>
+        <h2>Praktik Terbaik: Prinsip FIRST</h2>
+        <div class="dodont-grid">
+          <div class="dodont-card do"><h4>Lakukan (FIRST)</h4><ul>
+            <li><b>Fast</b> — cepat dieksekusi</li>
+            <li><b>Independent</b> — tidak bergantung pada test lain atau urutan eksekusi</li>
+            <li><b>Repeatable</b> — hasil sama di lingkungan mana pun</li>
+            <li><b>Self-validating</b> — lulus/gagal otomatis, tanpa cek manual</li>
+            <li><b>Timely</b> — ditulis bersamaan dengan kode</li>
+          </ul></div>
+          <div class="dodont-card dont"><h4>Hindari</h4><ul>
+            <li>Test yang memanggil database/jaringan sungguhan (gunakan mock)</li>
+            <li>Banyak tujuan pengujian dalam satu method test</li>
+            <li>Nama test seperti <code>test1</code> yang tidak informatif</li>
+            <li>Mengejar angka coverage tanpa assertion bermakna</li>
+          </ul></div>
+        </div>
+      </section>
+
+      <section id="studikasus">
+        <h2>Latihan Kelas: Menguji Method Validasi</h2>
+        <p class="sec-desc">Kerjakan berpasangan selama 12 menit.</p>
+        <div class="case-card"><span class="case-tag">Latihan</span>
+          <h4 style="margin-top:0;">Validasi Umur Pendaftar</h4>
+          <p><b>Requirement:</b> "Method <code>isEligible(int umur)</code> mengembalikan true jika umur 17–60 (inklusif), dan melempar <code>IllegalArgumentException</code> jika umur negatif."</p>
+          <ul>
+            <li>Tentukan nilai uji dengan BVA (6 nilai batas) dan satu nilai negatif.</li>
+            <li>Tulis test class JUnit 5 dengan satu <code>@ParameterizedTest</code> dan satu <code>assertThrows</code>.</li>
+          </ul>
+          <p class="prompt-q">Jika implementasi salah menulis <code>umur &gt; 17</code> alih-alih <code>&gt;= 17</code>, test mana yang akan gagal?</p>
+        </div>
+      </section>
+
+      <section id="rangkuman">
+        <h2>Rangkuman</h2>
+        <ul class="summary-list">
+          <li><span>✓</span> Unit test menguji unit terkecil secara terisolasi dan menjadi fondasi piramida pengujian.</li>
+          <li><span>✓</span> JUnit 5 menyediakan anotasi siklus hidup, assertion, dan dukungan test berparameter.</li>
+          <li><span>✓</span> Pola Arrange–Act–Assert menjaga test tetap terstruktur dan mudah dibaca.</li>
+          <li><span>✓</span> Data uji dari EP/BVA diterapkan langsung lewat <code>@ParameterizedTest</code>; jalur negatif diuji dengan <code>assertThrows</code>.</li>
+          <li><span>✓</span> Test yang baik memenuhi prinsip FIRST.</li>
+        </ul>
+      </section>
+
+      <section id="latihan">
+        <h2>Latihan Pemahaman Mandiri</h2>
+        <p class="sec-desc">Klik tiap soal untuk melihat kunci jawaban.</p>
+        <details><summary>1. Apa perbedaan <code>@BeforeEach</code> dan <code>@BeforeAll</code>?</summary>
+          <div class="answer"><b>Jawaban:</b> <code>@BeforeEach</code> berjalan sebelum <i>setiap</i> test (state segar tiap test), sedangkan <code>@BeforeAll</code> berjalan sekali sebelum seluruh test dalam class dan method-nya harus <code>static</code>.</div></details>
+        <details><summary>2. Mengapa test harus independen satu sama lain?</summary>
+          <div class="answer"><b>Jawaban:</b> Agar hasil tidak bergantung pada urutan eksekusi dan kegagalan satu test tidak menyebabkan kegagalan berantai, sehingga lokasi bug mudah ditelusuri.</div></details>
+        <details><summary>3. Kapan <code>@ParameterizedTest</code> lebih tepat daripada beberapa <code>@Test</code> terpisah?</summary>
+          <div class="answer"><b>Jawaban:</b> Ketika logika pengujian sama dan hanya data input/expected yang berbeda, seperti nilai-nilai hasil EP atau BVA. Ini mengurangi duplikasi kode.</div></details>
+        <details><summary>4. Coverage 100% sudah menjamin tidak ada bug. Benar atau salah?</summary>
+          <div class="answer"><b>Jawaban:</b> Salah. Coverage hanya mengukur kode yang dieksekusi, bukan kebenaran hasilnya. Test tanpa assertion yang bermakna tetap menaikkan coverage tanpa menemukan bug.</div></details>
+      </section>
+
+      <section id="tugas">
+        <h2>Tugas Sesi 8</h2>
+        <div class="task-card">
+          <h3>Unit Test JUnit untuk Class Sederhana</h3>
+          <p>Buat satu class Java dengan minimal 3 method berisi logika bersyarat (mis. validasi, perhitungan, klasifikasi). Tulis test class JUnit 5 yang mencakup:</p>
+          <p style="color:#F2F1EA;">(1) Minimal 8 test, termasuk 1 <code>@ParameterizedTest</code> berdasar BVA<br>(2) Minimal 2 test <code>assertThrows</code> untuk skenario negatif<br>(3) Penggunaan <code>@BeforeEach</code> dan <code>@DisplayName</code><br>(4) Tangkapan layar hasil <code>mvn test</code> / IDE yang menunjukkan seluruh test lulus</p>
+          <table class="rubric-table">
+            <tr><th>Kriteria</th><th>Bobot</th></tr>
+            <tr><td>Ketepatan penggunaan anotasi &amp; assertion</td><td>30%</td></tr>
+            <tr><td>Cakupan skenario (batas &amp; negatif)</td><td>35%</td></tr>
+            <tr><td>Kualitas penamaan &amp; kepatuhan FIRST</td><td>20%</td></tr>
+            <tr><td>Bukti eksekusi</td><td>15%</td></tr>
+          </table>
+          <span class="deadline-tag">⏳ Dikumpulkan sebelum sesi 9</span>
+        </div>
+      </section>
+
+      <section id="proyek">
+        <div class="eyebrow">Proyek Akhir</div>
+        <h2>Proyek Lintas Mata Kuliah: Web Service × Software Testing</h2>
+        <p class="sec-desc">Kick-off hari ini. Dosen pengampu: Philipus Suryo Subandoro · Periode: Minggu 8 hingga UAS · 5 kelompok.</p>
+
+        <h3>Ringkasan</h3>
+        <p>Tiap kelompok <b>membangun satu sistem web service</b> sesuai topik yang ditugaskan, lalu sistem tersebut <b>diuji secara independen oleh kelompok lain</b> lewat rotasi silang. Hasil akhirnya adalah satu laporan gabungan per sistem (bagian pengembangan + bagian pengujian) dalam format jurnal ilmiah.</p>
+        <div class="callout info"><span class="callout-icon">💡</span><span><b>Mengapa digabung:</b> mencerminkan kolaborasi dev–QA di industri; pengujian oleh pihak independen lebih objektif; laporan lebih kuat secara metodologis untuk dikembangkan menjadi draft jurnal.</span></div>
+
+        <h3>Skema Rotasi Silang</h3>
+        <div class="card"><table class="trace-table">
+          <tr><th>Kelompok Pembangun</th><th>Kelompok Penguji</th></tr>
+          <tr><td>A</td><td>B</td></tr><tr><td>B</td><td>C</td></tr><tr><td>C</td><td>D</td></tr><tr><td>D</td><td>E</td></tr><tr><td>E</td><td>A</td></tr>
+        </table></div>
+        <p style="font-size:13.5px; color:var(--ink-soft);">Setiap kelompok membangun 1 sistem dan menguji 1 sistem milik kelompok lain. Pola melingkar (E menguji A) menjaga beban kerja seimbang dan tidak ada yang menguji sistemnya sendiri.</p>
+
+        <h3>Penugasan Topik</h3>
+        <div class="card"><table class="trace-table">
+          <tr><th>Kel.</th><th>Topik</th><th>Kebutuhan Arsitektur Utama</th></tr>
+          <tr><td>A</td><td>Sistem reservasi tiket transportasi (bus/kereta)</td><td>Ketersediaan kursi real-time, locking saat booking bersamaan</td></tr>
+          <tr><td>B</td><td>Platform tiket event/konser</td><td>Rate limiting saat penjualan dibuka, antrian (message queue)</td></tr>
+          <tr><td>C</td><td>Sistem reservasi klinik/layanan kesehatan</td><td>Keamanan data sensitif (mTLS/OAuth2 ketat), notifikasi jadwal async</td></tr>
+          <tr><td>D</td><td>Marketplace UMKM lokal</td><td>Katalog fleksibel (GraphQL), order terpisah dari pembayaran (event-driven)</td></tr>
+          <tr><td>E</td><td>Platform crowdfunding/donasi</td><td>Progress real-time (WebSocket), keamanan integrasi payment</td></tr>
+        </table></div>
+        <p>Setiap topik mewajibkan minimal: <b>2 service terpisah</b>, <b>1 mekanisme komunikasi asinkron</b>, <b>1 penerapan keamanan lanjutan</b> (OAuth2/API key/mTLS), dan <b>1 protokol selain REST</b> (GraphQL atau gRPC).</p>
+        <div class="callout warn"><span class="callout-icon">⚠</span><span><b>Ketentuan protokol non-REST:</b> tidak ada protokol yang diwajibkan. Kelompok bebas memilih GraphQL atau gRPC, tetapi wajib menulis <b>justifikasi pilihan</b> di laporan (konsumen API, variasi data, kebutuhan performa, sistem legacy — kerangka keputusan sesi 7 Web Service).</span></div>
+
+        <h3>Timeline Gabungan</h3>
+        <div class="card" style="overflow-x:auto;"><table class="trace-table">
+          <tr><th>Minggu</th><th>Web Service (Pembangun)</th><th>Software Testing (Penguji)</th></tr>
+          <tr><td><b>8</b></td><td>Keamanan lanjutan (OAuth2/mTLS) — mulai implementasi</td><td>Teori: strategi &amp; jenis pengujian</td></tr><tr><td><b>9</b></td><td>API Gateway &amp; reverse proxy</td><td>Teori: test plan &amp; test case design</td></tr><tr><td><b>10</b></td><td>Microservices: service discovery, load balancing</td><td>Menyusun rancangan test plan (belum eksekusi)</td></tr><tr><td><b>11</b></td><td>Komunikasi asinkron (message queue)</td><td>Finalisasi test plan, siapkan tools pengujian</td></tr><tr><td><b>12</b></td><td><b>Code Freeze</b> — dokumentasi API lengkap, deploy stabil</td><td>Terima akses sistem dari kelompok pasangan</td></tr><tr><td><b>13</b></td><td>Standby, siap terima laporan bug awal</td><td>Eksekusi pengujian fungsional, performa, keamanan</td></tr><tr><td><b>14</b></td><td>Perbaikan bug berdasarkan laporan testing</td><td>Retest hasil perbaikan, finalisasi bug report</td></tr><tr><td><b>15</b></td><td>Finalisasi laporan, persiapan demo</td><td>Finalisasi laporan pengujian</td></tr><tr><td><b>UAS</b></td><td>Demo sistem + laporan desain individual (kuliah)</td><td>Presentasi hasil pengujian &amp; temuan</td></tr>
+        </table></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><span><b>Minggu 12 adalah titik kritis.</b> Sistem yang belum siap menyulitkan kelompok penguji, dan keterlambatan code freeze berdampak langsung ke jadwal mata kuliah lain.</span></div>
+
+        <h3>Dokumentasi Wajib Saat Code Freeze (Minggu 12)</h3>
+        <div class="card"><ul class="obj-list">
+          <li><span class="check">✓</span> <b>Spesifikasi OpenAPI</b> lengkap untuk endpoint REST (lanjutan lab 03).</li>
+          <li><span class="check">✓</span> <b>Skema GraphQL</b> (dengan contoh query/mutation) <b>atau file <code>.proto</code></b> untuk gRPC.</li>
+          <li><span class="check">✓</span> <b>README</b>: cara menjalankan/mengakses sistem, daftar endpoint, cara autentikasi (lanjutan lab 07).</li>
+          <li><span class="check">✓</span> <b>Daftar environment variable</b> untuk penguji (gunakan placeholder, jangan bocorkan secret asli).</li>
+          <li><span class="check">✓</span> <b>URL deployment</b> yang stabil (Render/Vercel/Cloudflare).</li>
+        </ul></div>
+
+        <h3>Rubrik Penilaian</h3>
+        <p style="font-size:13.5px; color:var(--ink-soft);">Kedua mata kuliah dinilai terpisah.</p>
+        <div class="card"><table class="rubric-table">
+          <tr><th>Web Service</th><th>Bobot</th></tr>
+          <tr><td>Arsitektur &amp; desain sistem</td><td>20%</td></tr>
+          <tr><td>Justifikasi pilihan protokol</td><td>10%</td></tr>
+          <tr><td>Implementasi teknis</td><td>25%</td></tr>
+          <tr><td>Keamanan</td><td>15%</td></tr>
+          <tr><td>Dokumentasi API</td><td>15%</td></tr>
+          <tr><td>Respons terhadap bug report</td><td>15%</td></tr>
+        </table>
+        <table class="rubric-table">
+          <tr><th>Software Testing</th><th>Bobot</th></tr>
+          <tr><td>Test plan (fungsional, performa, keamanan)</td><td>20%</td></tr>
+          <tr><td>Test case design (edge case &amp; skenario negatif)</td><td>25%</td></tr>
+          <tr><td>Eksekusi pengujian (bukti nyata: load test, uji keamanan dasar)</td><td>25%</td></tr>
+          <tr><td>Kualitas bug report (reproduksi, severity, saran)</td><td>20%</td></tr>
+          <tr><td>Retest &amp; verifikasi</td><td>10%</td></tr>
+        </table></div>
+        <div class="callout tip"><span class="callout-icon">✓</span><span><b>Catatan tooling:</b> protokol non-REST (terutama gRPC) lebih sulit diuji karena tidak bisa dibuka lewat browser dan butuh file <code>.proto</code> serta tool khusus (Postman gRPC, k6, ghz). Kelompok penguji boleh meminta bantuan konfigurasi tooling ke kelompok pembangun tanpa pengurangan nilai.</span></div>
+
+        <h3>Template Struktur Laporan Gabungan</h3>
+        <div class="code-block">1. Abstrak
+2. Pendahuluan
+   2.1 Latar Belakang
+   2.2 Rumusan Masalah
+3. Tinjauan Pustaka
+   (arsitektur web service, REST/GraphQL/gRPC, microservices)
+4. Metode Pengembangan                 [kelompok pembangun]
+   4.1 Arsitektur Sistem (diagram)
+   4.2 Teknologi yang Digunakan
+   4.3 Justifikasi Pilihan Protokol (GraphQL/gRPC)
+   4.4 Implementasi Keamanan
+5. Metode Pengujian                    [kelompok penguji]
+   5.1 Strategi &amp; Test Plan
+   5.2 Test Case Design
+6. Hasil &amp; Pembahasan
+   6.1 Hasil Implementasi              [kelompok pembangun]
+   6.2 Hasil Pengujian                 [kelompok penguji]
+   6.3 Pembahasan Bersama (temuan testing vs respons dev)
+7. Kesimpulan
+8. Daftar Pustaka</div>
+        <p style="font-size:13.5px; color:var(--ink-soft);">Setiap sub-bagian diberi label penulis agar penilaian kedua mata kuliah tetap bisa dipisahkan dari satu dokumen.</p>
+
+        <h3>Catatan Praktis</h3>
+        <div class="card"><ul class="obj-list">
+          <li><span class="check">•</span> <b>Jika code freeze molor:</b> penguji tetap menyusun test plan dari dokumentasi yang ada; eksekusi penuh ditunda, dan keterlambatan dicatat sebagai pengurangan nilai "Respons terhadap bug report" kelompok pembangun.</li>
+          <li><span class="check">•</span> <b>Komunikasi:</b> buat grup khusus per pasangan (A–B, B–C, C–D, D–E, E–A) sejak minggu 8.</li>
+          <li><span class="check">•</span> <b>Lab 12</b> ("Automated Testing &amp; Monitoring API") difokuskan pada dokumentasi &amp; stabilitas sistem untuk code freeze, bukan pengujian mendalam.</li>
+          <li><span class="check">•</span> <b>Kaitan dengan sesi ini:</b> kelompok pembangun dianjurkan menulis unit test JUnit untuk logika bisnis service-nya sebelum code freeze.</li>
+        </ul></div>
+      </section>
+
+      <section id="referensi">
+        <h2>Referensi Sesi Ini</h2>
+        <div class="card"><ul class="ref-list">
+          <li><b>JUnit 5 User Guide</b> — junit.org/junit5/docs/current/user-guide.</li>
+          <li><b>Tahchiev, P. et al.</b> — JUnit in Action, Manning.</li>
+          <li><b>Black, R., Graham, D., van Veenendaal, E.</b> — Foundations of Software Testing: ISTQB Certification, bab test levels dan tool support.</li>
+        </ul></div>
+      </section>
+
+      <div class="nav-next">
+        <a href="sesi7.html">← Sesi 7: Test Planning &amp; Dokumentasi</a>
+        <a class="to-next" href="index.html#silabus">Sesi 9: Unit Testing (PyTest) →</a>
+      </div>
+
+      <footer>
+        <span>Mata Kuliah Software Testing · 3 SKS</span>
+        <span>Dosen Pengampu: Philipus Suryo Subandoro</span>
+      </footer>
+    </div>
+  </main>
+</div>
+</body>
+</html>
