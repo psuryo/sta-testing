@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sesi 9 — Unit Testing (PyTest)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAFAF7;
+    --paper-raised:#FFFFFF;
+    --ink:#1A1D29;
+    --ink-soft:#565B6E;
+    --rule:#E1DED4;
+    --pass:#0F6B5C;
+    --pass-bg:#E9F3EF;
+    --info:#2C5F8A;
+    --info-bg:#EAF1F7;
+    --amber:#A9761E;
+    --amber-bg:#FBF2E1;
+    --red:#B5432E;
+    --red-bg:#FBEDE9;
+    --mono-bg:#1A1D29;
+    --mono-text:#D9F2E6;
+    --sidebar-w:250px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+
+  .shell{display:flex; min-height:100vh;}
+
+  .sidebar{
+    width:var(--sidebar-w); flex-shrink:0;
+    background:var(--ink); color:#EDEBE0;
+    padding:32px 22px 40px;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .back-link{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'IBM Plex Mono', monospace; font-size:12px;
+    color:#8FE0C6; text-decoration:none; margin-bottom:26px;
+  }
+  .back-link:hover{text-decoration:underline;}
+  .brand-sub{
+    font-family:'IBM Plex Mono', monospace; font-size:11px;
+    color:#7C8093; margin-bottom:4px;
+  }
+  .brand-name{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:17px; color:#fff; margin-bottom:24px;
+  }
+  .nav-label{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.08em; color:#7C8093; margin-bottom:10px;
+  }
+  .toc-link{
+    display:block; font-size:13px; color:#C9C7BC; text-decoration:none;
+    padding:6px 0 6px 12px; border-left:2px solid #3A3D4A;
+    transition:all .15s;
+  }
+  .toc-link:hover{color:#fff; border-left-color:#4FE3B8;}
+
+  main{flex:1; min-width:0;}
+  .wrap{max-width:800px; margin:0 auto; padding:56px 32px 100px;}
+
+  section{margin-bottom:56px; scroll-margin-top:24px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--pass);
+    letter-spacing:.06em; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:"$"; color:var(--ink-soft);}
+  h1{
+    font-family:'Space Grotesk', sans-serif; font-size:36px; font-weight:700;
+    margin:0 0 14px; letter-spacing:-.01em; line-height:1.15;
+  }
+  h2{
+    font-family:'Space Grotesk', sans-serif; font-size:23px; font-weight:600; margin:0 0 6px;
+  }
+  h3{
+    font-family:'Space Grotesk', sans-serif; font-size:18px; font-weight:600; margin:26px 0 10px;
+  }
+  h4{font-size:15px; font-weight:600; margin:18px 0 8px;}
+  .lead{color:var(--ink-soft); font-size:16px; max-width:620px;}
+  .sec-desc{color:var(--ink-soft); font-size:14.5px; margin:0 0 20px;}
+  p{font-size:14.5px; margin:0 0 12px;}
+
+  .meta-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:20px;}
+  .meta-chip{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; background:var(--paper-raised);
+    border:1px solid var(--rule); padding:6px 12px; border-radius:100px; color:var(--ink-soft);
+  }
+
+  .card{
+    background:var(--paper-raised); border:1px solid var(--rule);
+    border-radius:12px; padding:22px 24px;
+  }
+
+  .obj-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .obj-list li{display:flex; gap:12px; align-items:flex-start; font-size:14.5px;}
+  .check{
+    flex-shrink:0; width:20px; height:20px; border-radius:5px; background:var(--pass-bg);
+    color:var(--pass); display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; margin-top:2px;
+  }
+
+  .callout{
+    display:flex; gap:12px; align-items:flex-start; border-radius:10px;
+    padding:14px 16px; font-size:14px; margin:16px 0;
+  }
+  .callout.info{background:var(--info-bg); border:1px solid #C7DBEA; color:#1E4560;}
+  .callout.tip{background:var(--pass-bg); border:1px solid #C9E4DA; color:#0C4F44;}
+  .callout.warn{background:var(--amber-bg); border:1px solid #ECD9B0; color:#6B4A0F;}
+  .callout b{font-weight:600;}
+  .callout-icon{font-size:16px; flex-shrink:0;}
+
+  /* hierarchy funnel: Test Plan -> Scenario -> Case */
+  .funnel{display:flex; flex-direction:column; align-items:center; gap:0; margin:20px 0;}
+  .funnel-level{
+    border-radius:10px; padding:16px 24px; text-align:center; width:100%;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .funnel-level.plan{background:var(--ink); color:#fff; width:100%;}
+  .funnel-level.scenario{background:var(--info-bg); border:1px solid #C7DBEA; width:80%; margin-top:10px;}
+  .funnel-level.case{background:var(--pass-bg); border:1px solid #C9E4DA; width:60%; margin-top:10px;}
+  .funnel-level .ftitle{font-weight:700; font-size:14px;}
+  .funnel-level .fsub{font-size:12px; opacity:.85; margin-top:2px;}
+  .funnel-arrow{font-family:'IBM Plex Mono', monospace; color:var(--ink-soft); font-size:13px; margin:2px 0;}
+
+  /* IEEE 829 component list */
+  .component-list{list-style:none; margin:0; padding:0; display:grid; gap:0;}
+  .component-item{
+    display:grid; grid-template-columns:28px 1fr; gap:14px;
+    padding:14px 0; border-bottom:1px solid var(--rule);
+  }
+  .component-item:last-child{border-bottom:none;}
+  .component-num{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--pass); font-weight:600;
+  }
+  .component-title{font-weight:600; font-size:14px; margin-bottom:3px;}
+  .component-desc{color:var(--ink-soft); font-size:13px;}
+
+  /* test case detail card */
+  .tc-detail{border:1px solid var(--rule); border-radius:12px; overflow:hidden; background:var(--paper-raised);}
+  .tc-detail-header{
+    background:var(--ink); color:#fff; padding:12px 18px; font-family:'IBM Plex Mono', monospace;
+    font-size:13px; display:flex; justify-content:space-between; align-items:center;
+  }
+  .tc-detail table{width:100%; border-collapse:collapse; font-size:13px;}
+  .tc-detail th, .tc-detail td{border:1px solid var(--rule); padding:9px 14px; text-align:left; vertical-align:top;}
+  .tc-detail th{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:500;
+    font-size:11px; color:var(--ink-soft); text-transform:uppercase; width:160px;
+  }
+  .tc-detail td code{font-family:'IBM Plex Mono', monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;}
+  .tc-detail ol{margin:0; padding-left:18px;}
+  .tc-detail ol li{margin-bottom:4px;}
+
+  /* traceability matrix */
+  .trace-table{width:100%; border-collapse:collapse; font-size:13px;}
+  .trace-table th, .trace-table td{border:1px solid var(--rule); padding:9px 12px; text-align:left;}
+  .trace-table th{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:500;
+    font-size:10.5px; color:var(--ink-soft); text-transform:uppercase;
+  }
+  .trace-table code{font-family:'IBM Plex Mono', monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;}
+  .trace-table .status-covered{color:var(--pass); font-weight:600;}
+
+  /* best practice do/dont */
+  .dodont-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:680px){.dodont-grid{grid-template-columns:1fr;}}
+  .dodont-card{border-radius:12px; padding:18px 20px;}
+  .dodont-card.do{background:var(--pass-bg); border:1px solid #C9E4DA;}
+  .dodont-card.dont{background:var(--red-bg); border:1px solid #F0C4B8;}
+  .dodont-card h4{margin-top:0;}
+  .dodont-card ul{margin:8px 0 0; padding-left:18px; font-size:13.5px;}
+  .dodont-card li{margin-bottom:6px;}
+
+  .case-card{border:1px solid var(--rule); border-radius:12px; padding:20px 22px; background:var(--paper-raised);}
+  .case-card .case-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--info);
+    background:var(--info-bg); display:inline-block; padding:3px 9px; border-radius:100px; margin-bottom:10px;
+  }
+  .case-card p{font-size:13.5px; color:var(--ink-soft); margin-bottom:8px;}
+  .case-card .prompt-q{font-size:13.5px; color:var(--ink); font-weight:500; margin-top:12px;}
+  .case-card ul{font-size:13.5px; color:var(--ink-soft); margin:8px 0;}
+
+  details{
+    border:1px solid var(--rule); border-radius:10px; padding:14px 18px; margin-bottom:10px; background:var(--paper-raised);
+  }
+  summary{
+    cursor:pointer; font-size:14.5px; font-weight:500; list-style:none;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"+"; color:var(--pass); font-family:'IBM Plex Mono', monospace; font-size:16px;}
+  details[open] summary::after{content:"–";}
+  details[open] summary{margin-bottom:10px;}
+  .answer{font-size:13.5px; color:var(--ink-soft); border-top:1px solid var(--rule); padding-top:10px;}
+  .answer b{color:var(--pass);}
+
+  .task-card{background:var(--ink); color:#F2F1EA; border-radius:12px; padding:26px 28px;}
+  .task-card h3{color:#fff; margin-top:0;}
+  .task-card p{color:#D8D6CC; font-size:14px;}
+  .rubric-table{width:100%; border-collapse:collapse; margin-top:14px; font-size:13px;}
+  .rubric-table th, .rubric-table td{
+    border:1px solid rgba(255,255,255,.15); padding:9px 12px; text-align:left; color:#D8D6CC;
+  }
+  .rubric-table th{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:#8FE0C6;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .deadline-tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:12px;
+    background:rgba(255,255,255,.1); padding:5px 10px; border-radius:100px; color:#F2F1EA; margin-top:16px;
+  }
+
+  .ref-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .ref-list li{font-size:13.5px; color:var(--ink-soft); padding-left:18px; position:relative;}
+  .ref-list li::before{content:"—"; position:absolute; left:0; color:var(--pass);}
+  .ref-list b{color:var(--ink);}
+
+  .summary-list{list-style:none; margin:0; padding:0; display:grid; gap:8px;}
+  .summary-list li{
+    display:flex; gap:10px; align-items:flex-start; font-size:14px;
+    background:var(--pass-bg); padding:10px 14px; border-radius:8px; color:#0C4F44;
+  }
+
+  footer{
+    border-top:1px solid var(--rule); padding-top:24px; margin-top:20px;
+    color:var(--ink-soft); font-size:13px; display:flex; justify-content:space-between;
+    flex-wrap:wrap; gap:8px;
+  }
+  .nav-next{
+    display:flex; justify-content:space-between; align-items:center; gap:16px;
+    border:1px solid var(--rule); border-radius:12px; padding:18px 22px; margin-top:40px;
+  }
+  .nav-next a{text-decoration:none; font-size:13.5px; color:var(--ink-soft);}
+  .nav-next .to-next{color:var(--pass); font-weight:500;}
+
+  @media (max-width:860px){
+    .sidebar{display:none;}
+    .wrap{padding:40px 20px 80px;}
+    h1{font-size:28px;}
+    .funnel-level.scenario{width:92%;}
+    .funnel-level.case{width:80%;}
+  }
+  .code-block{background:#1F2420; color:#E8E6DA; border-radius:10px; padding:14px 18px; overflow-x:auto; font-family:'IBM Plex Mono',monospace; font-size:12.5px; line-height:1.6; margin:12px 0; white-space:pre;}
+  .code-block .c{color:#8A9A8F;}
+  p code, li code, td code{font-family:'IBM Plex Mono',monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;}
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav class="sidebar">
+    <a class="back-link" href="index.html">← Kembali ke Beranda</a>
+    <div class="brand-sub">software-testing / sesi-09</div>
+    <div class="brand-name">Unit Testing (PyTest)</div>
+    <div class="nav-label">Isi Halaman</div>
+    <a class="toc-link" href="#pendahuluan">Pendahuluan</a>
+    <a class="toc-link" href="#tujuan">Tujuan Pembelajaran</a>
+    <a class="toc-link" href="#mengapa">9.1 PyTest vs unittest</a>
+    <a class="toc-link" href="#dasar">9.2 Test Pertama &amp; Konvensi</a>
+    <a class="toc-link" href="#exception">9.3 Assertion &amp; Exception</a>
+    <a class="toc-link" href="#fixture">9.4 Fixture</a>
+    <a class="toc-link" href="#parametrize">9.5 Parametrize &amp; Marker</a>
+    <a class="toc-link" href="#mock">9.6 Mocking &amp; Coverage</a>
+    <a class="toc-link" href="#studikasus">Latihan Kelas</a>
+    <a class="toc-link" href="#rangkuman">Rangkuman</a>
+    <a class="toc-link" href="#latihan">Latihan Pemahaman</a>
+    <a class="toc-link" href="#tugas">Tugas Sesi 9</a>
+    <a class="toc-link" href="#referensi">Referensi</a>
+  </nav>
+  <main>
+    <div class="wrap">
+
+      <section id="pendahuluan">
+        <div class="eyebrow">sesi-09 / 14</div>
+        <h1>Unit Testing (Tools: PyTest)</h1>
+        <p class="lead">Setelah mengenal JUnit pada Java, sesi ini membawa konsep unit testing yang sama ke Python lewat PyTest: sintaks lebih ringkas, fixture yang fleksibel, dan ekosistem plugin yang luas. Konsepnya tidak berubah — yang berbeda hanya alat dan gaya penulisannya.</p>
+        <div class="meta-row">
+          <span class="meta-chip">⏱ 50 menit</span>
+          <span class="meta-chip">🎯 CPMK-3, CPMK-4</span>
+          <span class="meta-chip">🐍 Python 3 + PyTest</span>
+        </div>
+      </section>
+
+      <section id="tujuan">
+        <h2>Tujuan Pembelajaran</h2>
+        <p class="sec-desc">Setelah mengikuti sesi ini, mahasiswa mampu:</p>
+        <div class="card"><ul class="obj-list">
+          <li><span class="check">✓</span> Membandingkan PyTest dengan JUnit dan <code>unittest</code> bawaan Python.</li>
+          <li><span class="check">✓</span> Menulis dan menjalankan test PyTest sesuai konvensi penamaan.</li>
+          <li><span class="check">✓</span> Menguji exception dengan <code>pytest.raises</code>.</li>
+          <li><span class="check">✓</span> Memakai <code>fixture</code>, <code>parametrize</code>, dan <code>marker</code>.</li>
+          <li><span class="check">✓</span> Menggunakan mocking dasar dan mengukur coverage dengan <code>pytest-cov</code>.</li>
+        </ul></div>
+      </section>
+
+      <section id="mengapa">
+        <div class="eyebrow">9.1</div>
+        <h2>PyTest vs unittest vs JUnit</h2>
+        <div class="card"><table class="trace-table">
+          <tr><th>Aspek</th><th>JUnit 5 (Java)</th><th>unittest (Python)</th><th>PyTest</th></tr>
+          <tr><td>Bentuk test</td><td>Method dalam class</td><td>Class turunan <code>TestCase</code></td><td>Fungsi biasa (class opsional)</td></tr>
+          <tr><td>Assertion</td><td><code>assertEquals(...)</code></td><td><code>self.assertEqual(...)</code></td><td><code>assert a == b</code></td></tr>
+          <tr><td>Setup</td><td><code>@BeforeEach</code></td><td><code>setUp()</code></td><td><code>@pytest.fixture</code></td></tr>
+          <tr><td>Data berulang</td><td><code>@ParameterizedTest</code></td><td><code>subTest</code></td><td><code>@pytest.mark.parametrize</code></td></tr>
+        </table></div>
+        <div class="callout info"><span class="callout-icon">💡</span><span>PyTest memakai pernyataan <code>assert</code> Python biasa, lalu menulis ulang (<i>assertion rewriting</i>) agar saat gagal ia menampilkan nilai kedua sisi secara rinci — tanpa perlu menghafal puluhan method assertion.</span></div>
+      </section>
+
+      <section id="dasar">
+        <div class="eyebrow">9.2</div>
+        <h2>Test Pertama &amp; Konvensi</h2>
+        <p>Instalasi: <code>pip install pytest pytest-cov</code>. Contoh kode yang diuji (setara <code>DiscountCalculator</code> di sesi 8):</p>
+        <div class="code-block"><span class="c"># discount.py</span>
+def apply_discount(total):
+    if total &lt; 0:
+        raise ValueError("Total negatif")
+    if total &gt;= 500_000:
+        return total * 0.90      <span class="c"># diskon 10%</span>
+    return total</div>
+        <div class="code-block"><span class="c"># test_discount.py</span>
+from discount import apply_discount
+
+def test_diskon_di_batas_atas():
+    assert apply_discount(500_000) == 450_000
+
+def test_tanpa_diskon_di_bawah_batas():
+    assert apply_discount(499_999) == 499_999</div>
+        <p>Jalankan dengan <code>pytest -v</code>. PyTest menemukan test secara otomatis berdasarkan konvensi:</p>
+        <div class="card"><ul class="component-list">
+          <li class="component-item"><span class="component-num">01</span><div><div class="component-title">Nama file</div><div class="component-desc"><code>test_*.py</code> atau <code>*_test.py</code></div></div></li>
+          <li class="component-item"><span class="component-num">02</span><div><div class="component-title">Nama fungsi</div><div class="component-desc">Diawali <code>test_</code></div></div></li>
+          <li class="component-item"><span class="component-num">03</span><div><div class="component-title">Nama class</div><div class="component-desc">Diawali <code>Test</code> dan tanpa method <code>__init__</code></div></div></li>
+        </ul></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><span><b>Jebakan umum:</b> file bernama <code>discount_test_1.py</code> atau fungsi bernama <code>cek_diskon()</code> tidak akan dijalankan — dan PyTest tidak memberi peringatan. Selalu cek jumlah test yang terdeteksi pada ringkasan hasil.</span></div>
+      </section>
+
+      <section id="exception">
+        <div class="eyebrow">9.3</div>
+        <h2>Assertion &amp; Pengujian Exception</h2>
+        <div class="code-block">import pytest
+
+def test_total_negatif_ditolak():
+    with pytest.raises(ValueError, match="Total negatif"):
+        apply_discount(-1)
+
+def test_float_dengan_toleransi():
+    assert apply_discount(500_001) == pytest.approx(450_000.9)</div>
+        <p style="font-size:13.5px; color:var(--ink-soft);"><code>pytest.approx</code> menghindari kegagalan semu akibat ketidakpresisian bilangan pecahan, sama fungsinya dengan parameter delta pada <code>assertEquals</code> di JUnit.</p>
+      </section>
+
+      <section id="fixture">
+        <div class="eyebrow">9.4</div>
+        <h2>Fixture</h2>
+        <p><b>Fixture</b> adalah fungsi penyedia kondisi awal (data, objek, koneksi) yang disuntikkan ke test lewat nama parameter. Menggantikan <code>@BeforeEach</code>/<code>@AfterEach</code> dengan cara yang lebih fleksibel.</p>
+        <div class="code-block">import pytest
+
+@pytest.fixture
+def keranjang():
+    k = Keranjang()            <span class="c"># Arrange</span>
+    k.tambah("Buku", 50_000)
+    yield k                    <span class="c"># diberikan ke test</span>
+    k.kosongkan()              <span class="c"># cleanup setelah test selesai</span>
+
+def test_total_keranjang(keranjang):
+    assert keranjang.total() == 50_000</div>
+        <div class="card"><table class="trace-table">
+          <tr><th>Scope</th><th>Fixture dibuat ulang…</th></tr>
+          <tr><td><code>function</code> (default)</td><td>untuk setiap test</td></tr>
+          <tr><td><code>module</code></td><td>sekali per file</td></tr>
+          <tr><td><code>session</code></td><td>sekali untuk seluruh sesi pengujian</td></tr>
+        </table></div>
+        <div class="callout tip"><span class="callout-icon">✓</span><span>Fixture bersama diletakkan di <code>conftest.py</code> agar otomatis tersedia bagi semua file test dalam folder tersebut.</span></div>
+      </section>
+
+      <section id="parametrize">
+        <div class="eyebrow">9.5</div>
+        <h2>Parametrize &amp; Marker</h2>
+        <div class="code-block">@pytest.mark.parametrize("total, diharapkan", [
+    (0, 0),
+    (499_999, 499_999),      <span class="c"># batas bawah</span>
+    (500_000, 450_000),      <span class="c"># tepat di batas</span>
+    (1_000_000, 900_000),
+])
+def test_hitung_diskon(total, diharapkan):
+    assert apply_discount(total) == diharapkan</div>
+        <p>Marker memberi label pada test sehingga dapat dipilih atau dilewati:</p>
+        <div class="card"><table class="trace-table">
+          <tr><th>Marker</th><th>Fungsi</th></tr>
+          <tr><td><code>@pytest.mark.skip(reason=...)</code></td><td>Melewati test</td></tr>
+          <tr><td><code>@pytest.mark.xfail</code></td><td>Diharapkan gagal (bug yang sudah diketahui)</td></tr>
+          <tr><td><code>@pytest.mark.slow</code> (kustom)</td><td>Dijalankan selektif: <code>pytest -m "not slow"</code></td></tr>
+        </table></div>
+      </section>
+
+      <section id="mock">
+        <div class="eyebrow">9.6</div>
+        <h2>Mocking &amp; Coverage</h2>
+        <p>Unit test harus terisolasi dari dependensi eksternal (jaringan, database, API pihak ketiga). Gunakan <code>monkeypatch</code> bawaan PyTest atau <code>unittest.mock</code>.</p>
+        <div class="code-block">from unittest.mock import patch
+
+def test_notifikasi_tanpa_kirim_email_asli():
+    with patch("app.kirim_email") as palsu:
+        palsu.return_value = True
+        assert proses_pesanan(id=1) == "selesai"
+        palsu.assert_called_once()</div>
+        <p>Mengukur coverage (kelanjutan sesi 6):</p>
+        <div class="code-block">pytest --cov=. --cov-report=term-missing --cov-branch</div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><span>Coverage tinggi bukan jaminan kualitas. Test tanpa <code>assert</code> yang bermakna tetap menaikkan angka coverage tanpa menemukan bug apa pun.</span></div>
+      </section>
+
+      <section id="studikasus">
+        <h2>Latihan Kelas: Menguji Fungsi Klasifikasi Nilai</h2>
+        <p class="sec-desc">Kerjakan berpasangan selama 12 menit.</p>
+        <div class="case-card"><span class="case-tag">Latihan</span>
+          <h4 style="margin-top:0;">Konversi Nilai Angka ke Huruf</h4>
+          <p><b>Requirement:</b> "Fungsi <code>grade(nilai)</code> mengembalikan A (≥85), B (70–84), C (55–69), D (40–54), E (&lt;40). Nilai di luar 0–100 melempar <code>ValueError</code>."</p>
+          <ul>
+            <li>Tentukan nilai uji dengan BVA pada setiap batas, termasuk 0, 100, -1, dan 101.</li>
+            <li>Tulis satu test <code>parametrize</code> dan satu test <code>pytest.raises</code>.</li>
+            <li>Ubah fungsi menjadi memakai dua fixture berbeda? Diskusikan: apakah di sini fixture diperlukan?</li>
+          </ul>
+          <p class="prompt-q">Jalankan dengan <code>--cov-branch</code>: cabang mana yang belum tersentuh oleh test Anda?</p>
+        </div>
+      </section>
+
+      <section id="rangkuman">
+        <h2>Rangkuman</h2>
+        <ul class="summary-list">
+          <li><span>✓</span> PyTest menyederhanakan penulisan test: fungsi biasa dan <code>assert</code> Python native.</li>
+          <li><span>✓</span> Test ditemukan otomatis berdasarkan konvensi penamaan file, fungsi, dan class.</li>
+          <li><span>✓</span> Fixture mengelola setup/cleanup; <code>parametrize</code> menjalankan satu logika dengan banyak data hasil EP/BVA.</li>
+          <li><span>✓</span> Mocking menjaga isolasi unit dari dependensi eksternal.</li>
+          <li><span>✓</span> <code>pytest-cov</code> mengukur coverage, tetapi kualitas assertion tetap yang utama.</li>
+        </ul>
+      </section>
+
+      <section id="latihan">
+        <h2>Latihan Pemahaman Mandiri</h2>
+        <p class="sec-desc">Klik tiap soal untuk melihat kunci jawaban.</p>
+        <details><summary>1. Mengapa fungsi <code>cek_diskon()</code> di file <code>test_discount.py</code> tidak dijalankan PyTest?</summary>
+          <div class="answer"><b>Jawaban:</b> Karena nama fungsi tidak diawali <code>test_</code>, sehingga tidak ikut ditemukan secara otomatis.</div></details>
+        <details><summary>2. Apa keunggulan fixture dibanding menyalin kode setup di setiap test?</summary>
+          <div class="answer"><b>Jawaban:</b> Kode setup ditulis sekali dan dipakai ulang lewat parameter, mendukung cleanup dengan <code>yield</code>, mengatur scope, dan dapat dibagi lewat <code>conftest.py</code>.</div></details>
+        <details><summary>3. Kapan memakai <code>xfail</code> dan bukan <code>skip</code>?</summary>
+          <div class="answer"><b>Jawaban:</b> <code>xfail</code> untuk test yang tetap dijalankan tetapi diharapkan gagal karena bug yang sudah diketahui; jika tiba-tiba lulus, PyTest melaporkannya. <code>skip</code> sama sekali tidak menjalankan test.</div></details>
+        <details><summary>4. Mengapa panggilan ke API pembayaran eksternal sebaiknya di-mock pada unit test?</summary>
+          <div class="answer"><b>Jawaban:</b> Agar test cepat, repeatable, tidak bergantung pada jaringan atau layanan pihak ketiga, dan tidak menimbulkan efek samping nyata seperti transaksi sungguhan.</div></details>
+      </section>
+
+      <section id="tugas">
+        <h2>Tugas Sesi 9</h2>
+        <div class="task-card">
+          <h3>Unit Test PyTest dengan Fixture dan Parametrize</h3>
+          <p>Buat modul Python dengan minimal 3 fungsi berlogika bersyarat (boleh versi Python dari tugas sesi 8). Tulis test PyTest yang mencakup:</p>
+          <p style="color:#F2F1EA;">(1) Minimal 8 test, termasuk 1 <code>parametrize</code> berdasar BVA<br>(2) Minimal 2 test <code>pytest.raises</code> untuk skenario negatif<br>(3) Minimal 1 fixture (dengan cleanup memakai <code>yield</code>) dan 1 penggunaan mock<br>(4) Laporan <code>pytest --cov --cov-branch</code> beserta analisis singkat cabang yang belum tercakup</p>
+          <table class="rubric-table">
+            <tr><th>Kriteria</th><th>Bobot</th></tr>
+            <tr><td>Ketepatan fixture, parametrize, dan assertion</td><td>30%</td></tr>
+            <tr><td>Cakupan skenario (batas &amp; negatif)</td><td>30%</td></tr>
+            <tr><td>Penggunaan mock &amp; isolasi</td><td>15%</td></tr>
+            <tr><td>Laporan coverage &amp; analisis</td><td>25%</td></tr>
+          </table>
+          <span class="deadline-tag">⏳ Dikumpulkan sebelum sesi 10</span>
+        </div>
+      </section>
+
+      <section id="referensi">
+        <h2>Referensi Sesi Ini</h2>
+        <div class="card"><ul class="ref-list">
+          <li><b>PyTest Documentation</b> — docs.pytest.org.</li>
+          <li><b>Okken, B.</b> — Python Testing with pytest, Pragmatic Bookshelf.</li>
+          <li><b>Black, R., Graham, D., van Veenendaal, E.</b> — Foundations of Software Testing: ISTQB Certification, bab tool support for testing.</li>
+        </ul></div>
+      </section>
+
+      <div class="nav-next">
+        <a href="sesi8.html">← Sesi 8: Unit Testing (JUnit)</a>
+        <a class="to-next" href="index.html#silabus">Sesi 10: Procedural &amp; OO Testing →</a>
+      </div>
+
+      <footer>
+        <span>Mata Kuliah Software Testing · 3 SKS</span>
+        <span>Dosen Pengampu: Philipus Suryo Subandoro</span>
+      </footer>
+    </div>
+  </main>
+</div>
+</body>
+</html>
