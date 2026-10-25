@@ -254,6 +254,7 @@
   .code-block{background:#1F2420; color:#E8E6DA; border-radius:10px; padding:14px 18px; overflow-x:auto; font-family:'IBM Plex Mono',monospace; font-size:12.5px; line-height:1.6; margin:12px 0; white-space:pre;}
   .code-block .c{color:#8A9A8F;}
   p code, li code, td code{font-family:'IBM Plex Mono',monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;}
+  .task-card code, .task-card p code{background:rgba(255,255,255,.14); color:#F2F1EA;}
 </style>
 </head>
 <body>
@@ -270,7 +271,8 @@
     <a class="toc-link" href="#exception">9.3 Assertion &amp; Exception</a>
     <a class="toc-link" href="#fixture">9.4 Fixture</a>
     <a class="toc-link" href="#parametrize">9.5 Parametrize &amp; Marker</a>
-    <a class="toc-link" href="#mock">9.6 Mocking &amp; Coverage</a>
+    <a class="toc-link" href="#mock">9.6 Mocking</a>
+    <a class="toc-link" href="#coverage">9.7 Coverage</a>
     <a class="toc-link" href="#studikasus">Latihan Kelas</a>
     <a class="toc-link" href="#rangkuman">Rangkuman</a>
     <a class="toc-link" href="#latihan">Latihan Pemahaman</a>
@@ -404,18 +406,135 @@ def test_hitung_diskon(total, diharapkan):
 
       <section id="mock">
         <div class="eyebrow">9.6</div>
-        <h2>Mocking &amp; Coverage</h2>
-        <p>Unit test harus terisolasi dari dependensi eksternal (jaringan, database, API pihak ketiga). Gunakan <code>monkeypatch</code> bawaan PyTest atau <code>unittest.mock</code>.</p>
-        <div class="code-block">from unittest.mock import patch
+        <h2>Mocking</h2>
+        <p><b>Mocking</b> adalah teknik mengganti dependensi asli (database, API eksternal, layanan email, jam sistem) dengan objek pengganti yang dapat dikendalikan selama pengujian. Tujuannya agar yang diuji benar-benar <i>logika unit itu sendiri</i>, bukan perilaku sistem lain di sekitarnya.</p>
 
-def test_notifikasi_tanpa_kirim_email_asli():
+        <h3>Kegunaan Mocking</h3>
+        <div class="card"><ul class="component-list">
+          <li class="component-item"><span class="component-num">01</span><div><div class="component-title">Isolasi</div><div class="component-desc">Test gagal hanya jika kode yang diuji bermasalah, bukan karena internet mati atau database kosong.</div></div></li>
+          <li class="component-item"><span class="component-num">02</span><div><div class="component-title">Cepat &amp; repeatable</div><div class="component-desc">Tidak ada panggilan jaringan; hasil sama di laptop, CI, maupun komputer teman.</div></div></li>
+          <li class="component-item"><span class="component-num">03</span><div><div class="component-title">Menghindari efek samping nyata</div><div class="component-desc">Tidak mengirim email sungguhan, tidak menagih kartu kredit, tidak menghapus data produksi.</div></div></li>
+          <li class="component-item"><span class="component-num">04</span><div><div class="component-title">Mensimulasikan kondisi sulit</div><div class="component-desc">Timeout, error 500, atau respons aneh dari API mudah dipicu lewat mock, tetapi sulit dibuat dengan layanan asli.</div></div></li>
+          <li class="component-item"><span class="component-num">05</span><div><div class="component-title">Memverifikasi interaksi</div><div class="component-desc">Memastikan fungsi tertentu dipanggil, berapa kali, dan dengan argumen apa.</div></div></li>
+        </ul></div>
+
+        <h3>Jenis Test Double</h3>
+        <div class="card"><table class="trace-table">
+          <tr><th>Jenis</th><th>Peran</th><th>Contoh</th></tr>
+          <tr><td>Dummy</td><td>Pengisi parameter, tidak pernah dipakai</td><td><code>None</code> atau objek kosong</td></tr>
+          <tr><td>Stub</td><td>Mengembalikan jawaban tetap</td><td>API kurs selalu menjawab 15.000</td></tr>
+          <tr><td>Fake</td><td>Implementasi sederhana yang sungguh berfungsi</td><td>Database dalam memori (dict/SQLite)</td></tr>
+          <tr><td>Mock</td><td>Stub yang juga merekam dan memverifikasi pemanggilan</td><td><code>assert_called_once_with(...)</code></td></tr>
+          <tr><td>Spy</td><td>Membungkus objek asli sambil merekam pemanggilannya</td><td><code>patch.object(..., wraps=...)</code></td></tr>
+        </table></div>
+
+        <h3>Contoh Lengkap</h3>
+        <p>Kode yang diuji memanggil layanan email eksternal:</p>
+        <div class="code-block"><span class="c"># app.py</span>
+from email_service import kirim_email       <span class="c"># dependensi eksternal</span>
+
+def proses_pesanan(id, email):
+    if id &lt;= 0:
+        raise ValueError("ID tidak valid")
+    ok = kirim_email(email, f"Pesanan {id} diterima")
+    return "selesai" if ok else "email gagal"</div>
+        <div class="code-block"><span class="c"># test_app.py</span>
+from unittest.mock import patch
+import pytest
+from app import proses_pesanan
+
+def test_pesanan_sukses_dan_email_terkirim():
+    with patch("app.kirim_email", return_value=True) as palsu:   <span class="c"># stub + mock</span>
+        assert proses_pesanan(1, "a@b.id") == "selesai"
+        palsu.assert_called_once_with("a@b.id", "Pesanan 1 diterima")
+
+def test_email_gagal_ditangani():
+    with patch("app.kirim_email", return_value=False):
+        assert proses_pesanan(1, "a@b.id") == "email gagal"
+
+def test_layanan_email_timeout():
+    with patch("app.kirim_email", side_effect=TimeoutError):     <span class="c"># simulasi error</span>
+        with pytest.raises(TimeoutError):
+            proses_pesanan(1, "a@b.id")
+
+def test_id_tidak_valid_tidak_mengirim_email():
     with patch("app.kirim_email") as palsu:
-        palsu.return_value = True
-        assert proses_pesanan(id=1) == "selesai"
-        palsu.assert_called_once()</div>
-        <p>Mengukur coverage (kelanjutan sesi 6):</p>
-        <div class="code-block">pytest --cov=. --cov-report=term-missing --cov-branch</div>
-        <div class="callout warn"><span class="callout-icon">⚠</span><span>Coverage tinggi bukan jaminan kualitas. Test tanpa <code>assert</code> yang bermakna tetap menaikkan angka coverage tanpa menemukan bug apa pun.</span></div>
+        with pytest.raises(ValueError):
+            proses_pesanan(0, "a@b.id")
+        palsu.assert_not_called()                                <span class="c"># verifikasi interaksi</span></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><span><b>Jebakan paling umum: salah target patch.</b> Patch harus menunjuk ke tempat nama itu <i>dipakai</i> (<code>"app.kirim_email"</code>), bukan tempat ia didefinisikan (<code>"email_service.kirim_email"</code>). Karena <code>app.py</code> sudah mengimpor nama tersebut, patch pada modul asal tidak berpengaruh dan email asli tetap terkirim.</span></div>
+
+        <h3>Alternatif: monkeypatch &amp; Fixture</h3>
+        <div class="code-block">def test_dengan_monkeypatch(monkeypatch):
+    monkeypatch.setattr("app.kirim_email", lambda to, msg: True)
+    assert proses_pesanan(1, "a@b.id") == "selesai"
+
+<span class="c"># Mengatur variabel lingkungan tanpa mengubah sistem asli</span>
+def test_env(monkeypatch):
+    monkeypatch.setenv("API_KEY", "palsu-123")</div>
+        <p style="font-size:13.5px; color:var(--ink-soft);"><code>monkeypatch</code> otomatis mengembalikan kondisi semula setelah test selesai. Ia cocok untuk penggantian sederhana; <code>unittest.mock</code> lebih cocok bila Anda perlu memverifikasi pemanggilan.</p>
+
+        <h3>Kapan Tidak Perlu / Jangan Berlebihan</h3>
+        <div class="dodont-grid">
+          <div class="dodont-card do"><h4>Mock ini</h4><ul>
+            <li>Jaringan, API pihak ketiga, email/SMS</li>
+            <li>Database dan sistem berkas (atau pakai fake)</li>
+            <li>Waktu (<code>datetime.now</code>) dan nilai acak</li>
+          </ul></div>
+          <div class="dodont-card dont"><h4>Jangan mock</h4><ul>
+            <li>Kode milik unit yang sedang diuji</li>
+            <li>Fungsi murni sederhana (cukup dipanggil langsung)</li>
+            <li>Semuanya sekaligus: test jadi hanya memeriksa mock itu sendiri</li>
+          </ul></div>
+        </div>
+        <div class="callout info"><span class="callout-icon">💡</span><span>Mock hanya membuktikan unit bekerja <i>jika asumsi kita tentang dependensi benar</i>. Kontrak sebenarnya dengan layanan asli tetap perlu diverifikasi lewat integration test dan contract test, termasuk pada proyek lintas mata kuliah nanti.</span></div>
+      </section>
+
+      <section id="coverage">
+        <div class="eyebrow">9.7</div>
+        <h2>Coverage</h2>
+        <p><b>Code coverage</b> adalah persentase kode sumber yang dieksekusi saat test berjalan. Di sesi 6 Anda mempelajari Statement dan Branch Coverage secara teori; <code>pytest-cov</code> (berbasis <code>coverage.py</code>) menghitungnya otomatis.</p>
+
+        <h3>Kegunaan Coverage</h3>
+        <div class="card"><ul class="obj-list">
+          <li><span class="check">✓</span> <b>Menemukan kode yang belum diuji</b> — baris, fungsi, atau cabang yang tidak pernah dijalankan test.</li>
+          <li><span class="check">✓</span> <b>Memandu penambahan test</b> — laporan menunjuk nomor baris yang terlewat.</li>
+          <li><span class="check">✓</span> <b>Menjaga standar tim</b> — CI dapat menolak perubahan yang menurunkan coverage.</li>
+          <li><span class="check">✓</span> <b>Bukti pengujian</b> untuk laporan, termasuk bagian eksekusi pengujian di proyek.</li>
+        </ul></div>
+
+        <h3>Statement vs Branch Coverage</h3>
+        <div class="code-block"><span class="c"># fungsi dengan satu if tanpa else</span>
+def bayar(total, member):
+    if member:
+        total *= 0.9
+    return total
+
+<span class="c"># Test: bayar(100, True)</span>
+<span class="c"># Statement coverage = 100%  (semua baris dijalankan)</span>
+<span class="c"># Branch coverage    = 50%   (cabang member=False tak pernah diuji)</span></div>
+        <p style="font-size:13.5px; color:var(--ink-soft);">Itulah alasan flag <code>--cov-branch</code> disarankan: statement coverage saja dapat menyembunyikan cabang yang belum diuji.</p>
+
+        <h3>Menjalankan &amp; Membaca Laporan</h3>
+        <div class="code-block">pytest --cov=app --cov-branch --cov-report=term-missing --cov-report=html</div>
+        <div class="code-block">Name     Stmts   Miss Branch BrPart  Cover   Missing
+----------------------------------------------------
+app.py      12      2      6      1    83%   18-19, 7-&gt;9
+----------------------------------------------------
+TOTAL       12      2      6      1    83%</div>
+        <div class="card"><table class="trace-table">
+          <tr><th>Kolom</th><th>Arti</th></tr>
+          <tr><td>Stmts / Miss</td><td>Jumlah statement / yang tidak dieksekusi</td></tr>
+          <tr><td>Branch / BrPart</td><td>Jumlah cabang / cabang yang hanya sebagian teruji</td></tr>
+          <tr><td>Missing</td><td><code>18-19</code> = baris tak tersentuh; <code>7-&gt;9</code> = lompatan dari baris 7 ke 9 tak pernah terjadi</td></tr>
+        </table></div>
+        <p style="font-size:13.5px; color:var(--ink-soft);">Opsi <code>--cov-report=html</code> membuat folder <code>htmlcov/</code>; buka <code>index.html</code> untuk melihat kode dengan baris merah (belum teruji) dan hijau (teruji). Untuk CI, tambahkan <code>--cov-fail-under=80</code> agar build gagal bila coverage di bawah 80%.</p>
+
+        <h3>Keterbatasan Coverage</h3>
+        <div class="code-block">def test_tanpa_assertion():
+    apply_discount(500_000)       <span class="c"># dieksekusi, tetapi hasil tidak diperiksa</span>
+    <span class="c"># coverage naik, bug tetap lolos</span></div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><span><b>Coverage mengukur kode yang dijalankan, bukan kebenaran hasilnya.</b> Angka 100% tidak berarti bebas bug, dan bug berupa fitur yang hilang (tidak ada kodenya) tidak akan terlihat sama sekali. Gunakan coverage sebagai alat untuk menemukan celah, bukan sebagai target tujuan akhir; target yang wajar umumnya 70–85% dengan branch coverage pada logika bisnis penting.</span></div>
       </section>
 
       <section id="studikasus">
