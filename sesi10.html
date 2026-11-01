@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sesi 10 — Procedural &amp; Object Oriented Testing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAFAF7;
+    --paper-raised:#FFFFFF;
+    --ink:#1A1D29;
+    --ink-soft:#565B6E;
+    --rule:#E1DED4;
+    --pass:#0F6B5C;
+    --pass-bg:#E9F3EF;
+    --info:#2C5F8A;
+    --info-bg:#EAF1F7;
+    --amber:#A9761E;
+    --amber-bg:#FBF2E1;
+    --red:#B5432E;
+    --red-bg:#FBEDE9;
+    --mono-bg:#1A1D29;
+    --mono-text:#D9F2E6;
+    --sidebar-w:250px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+
+  .shell{display:flex; min-height:100vh;}
+
+  .sidebar{
+    width:var(--sidebar-w); flex-shrink:0;
+    background:var(--ink); color:#EDEBE0;
+    padding:32px 22px 40px;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .back-link{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'IBM Plex Mono', monospace; font-size:12px;
+    color:#8FE0C6; text-decoration:none; margin-bottom:26px;
+  }
+  .back-link:hover{text-decoration:underline;}
+  .brand-sub{
+    font-family:'IBM Plex Mono', monospace; font-size:11px;
+    color:#7C8093; margin-bottom:4px;
+  }
+  .brand-name{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:17px; color:#fff; margin-bottom:24px;
+  }
+  .nav-label{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.08em; color:#7C8093; margin-bottom:10px;
+  }
+  .toc-link{
+    display:block; font-size:13px; color:#C9C7BC; text-decoration:none;
+    padding:6px 0 6px 12px; border-left:2px solid #3A3D4A;
+    transition:all .15s;
+  }
+  .toc-link:hover{color:#fff; border-left-color:#4FE3B8;}
+
+  main{flex:1; min-width:0;}
+  .wrap{max-width:800px; margin:0 auto; padding:56px 32px 100px;}
+
+  section{margin-bottom:56px; scroll-margin-top:24px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--pass);
+    letter-spacing:.06em; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:"$"; color:var(--ink-soft);}
+  h1{
+    font-family:'Space Grotesk', sans-serif; font-size:36px; font-weight:700;
+    margin:0 0 14px; letter-spacing:-.01em; line-height:1.15;
+  }
+  h2{
+    font-family:'Space Grotesk', sans-serif; font-size:23px; font-weight:600; margin:0 0 6px;
+  }
+  h3{
+    font-family:'Space Grotesk', sans-serif; font-size:18px; font-weight:600; margin:26px 0 10px;
+  }
+  h4{font-size:15px; font-weight:600; margin:18px 0 8px;}
+  .lead{color:var(--ink-soft); font-size:16px; max-width:620px;}
+  .sec-desc{color:var(--ink-soft); font-size:14.5px; margin:0 0 20px;}
+  p{font-size:14.5px; margin:0 0 12px;}
+
+  .meta-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:20px;}
+  .meta-chip{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; background:var(--paper-raised);
+    border:1px solid var(--rule); padding:6px 12px; border-radius:100px; color:var(--ink-soft);
+  }
+
+  .card{
+    background:var(--paper-raised); border:1px solid var(--rule);
+    border-radius:12px; padding:22px 24px;
+  }
+
+  .obj-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .obj-list li{display:flex; gap:12px; align-items:flex-start; font-size:14.5px;}
+  .check{
+    flex-shrink:0; width:20px; height:20px; border-radius:5px; background:var(--pass-bg);
+    color:var(--pass); display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; margin-top:2px;
+  }
+
+  .callout{
+    display:flex; gap:12px; align-items:flex-start; border-radius:10px;
+    padding:14px 16px; font-size:14px; margin:16px 0;
+  }
+  .callout.info{background:var(--info-bg); border:1px solid #C7DBEA; color:#1E4560;}
+  .callout.tip{background:var(--pass-bg); border:1px solid #C9E4DA; color:#0C4F44;}
+  .callout.warn{background:var(--amber-bg); border:1px solid #ECD9B0; color:#6B4A0F;}
+  .callout b{font-weight:600;}
+  .callout-icon{font-size:16px; flex-shrink:0;}
+
+  /* hierarchy funnel: Test Plan -> Scenario -> Case */
+  .funnel{display:flex; flex-direction:column; align-items:center; gap:0; margin:20px 0;}
+  .funnel-level{
+    border-radius:10px; padding:16px 24px; text-align:center; width:100%;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .funnel-level.plan{background:var(--ink); color:#fff; width:100%;}
+  .funnel-level.scenario{background:var(--info-bg); border:1px solid #C7DBEA; width:80%; margin-top:10px;}
+  .funnel-level.case{background:var(--pass-bg); border:1px solid #C9E4DA; width:60%; margin-top:10px;}
+  .funnel-level .ftitle{font-weight:700; font-size:14px;}
+  .funnel-level .fsub{font-size:12px; opacity:.85; margin-top:2px;}
+  .funnel-arrow{font-family:'IBM Plex Mono', monospace; color:var(--ink-soft); font-size:13px; margin:2px 0;}
+
+  /* IEEE 829 component list */
+  .component-list{list-style:none; margin:0; padding:0; display:grid; gap:0;}
+  .component-item{
+    display:grid; grid-template-columns:28px 1fr; gap:14px;
+    padding:14px 0; border-bottom:1px solid var(--rule);
+  }
+  .component-item:last-child{border-bottom:none;}
+  .component-num{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--pass); font-weight:600;
+  }
+  .component-title{font-weight:600; font-size:14px; margin-bottom:3px;}
+  .component-desc{color:var(--ink-soft); font-size:13px;}
+
+  /* test case detail card */
+  .tc-detail{border:1px solid var(--rule); border-radius:12px; overflow:hidden; background:var(--paper-raised);}
+  .tc-detail-header{
+    background:var(--ink); color:#fff; padding:12px 18px; font-family:'IBM Plex Mono', monospace;
+    font-size:13px; display:flex; justify-content:space-between; align-items:center;
+  }
+  .tc-detail table{width:100%; border-collapse:collapse; font-size:13px;}
+  .tc-detail th, .tc-detail td{border:1px solid var(--rule); padding:9px 14px; text-align:left; vertical-align:top;}
+  .tc-detail th{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:500;
+    font-size:11px; color:var(--ink-soft); text-transform:uppercase; width:160px;
+  }
+  .tc-detail td code{font-family:'IBM Plex Mono', monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;}
+  .tc-detail ol{margin:0; padding-left:18px;}
+  .tc-detail ol li{margin-bottom:4px;}
+
+  /* traceability matrix */
+  .trace-table{width:100%; border-collapse:collapse; font-size:13px;}
+  .trace-table th, .trace-table td{border:1px solid var(--rule); padding:9px 12px; text-align:left;}
+  .trace-table th{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:500;
+    font-size:10.5px; color:var(--ink-soft); text-transform:uppercase;
+  }
+  .trace-table code{font-family:'IBM Plex Mono', monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;}
+  .trace-table .status-covered{color:var(--pass); font-weight:600;}
+
+  /* best practice do/dont */
+  .dodont-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:680px){.dodont-grid{grid-template-columns:1fr;}}
+  .dodont-card{border-radius:12px; padding:18px 20px;}
+  .dodont-card.do{background:var(--pass-bg); border:1px solid #C9E4DA;}
+  .dodont-card.dont{background:var(--red-bg); border:1px solid #F0C4B8;}
+  .dodont-card h4{margin-top:0;}
+  .dodont-card ul{margin:8px 0 0; padding-left:18px; font-size:13.5px;}
+  .dodont-card li{margin-bottom:6px;}
+
+  .case-card{border:1px solid var(--rule); border-radius:12px; padding:20px 22px; background:var(--paper-raised);}
+  .case-card .case-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--info);
+    background:var(--info-bg); display:inline-block; padding:3px 9px; border-radius:100px; margin-bottom:10px;
+  }
+  .case-card p{font-size:13.5px; color:var(--ink-soft); margin-bottom:8px;}
+  .case-card .prompt-q{font-size:13.5px; color:var(--ink); font-weight:500; margin-top:12px;}
+  .case-card ul{font-size:13.5px; color:var(--ink-soft); margin:8px 0;}
+
+  details{
+    border:1px solid var(--rule); border-radius:10px; padding:14px 18px; margin-bottom:10px; background:var(--paper-raised);
+  }
+  summary{
+    cursor:pointer; font-size:14.5px; font-weight:500; list-style:none;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"+"; color:var(--pass); font-family:'IBM Plex Mono', monospace; font-size:16px;}
+  details[open] summary::after{content:"–";}
+  details[open] summary{margin-bottom:10px;}
+  .answer{font-size:13.5px; color:var(--ink-soft); border-top:1px solid var(--rule); padding-top:10px;}
+  .answer b{color:var(--pass);}
+
+  .task-card{background:var(--ink); color:#F2F1EA; border-radius:12px; padding:26px 28px;}
+  .task-card h3{color:#fff; margin-top:0;}
+  .task-card p{color:#D8D6CC; font-size:14px;}
+  .rubric-table{width:100%; border-collapse:collapse; margin-top:14px; font-size:13px;}
+  .rubric-table th, .rubric-table td{
+    border:1px solid rgba(255,255,255,.15); padding:9px 12px; text-align:left; color:#D8D6CC;
+  }
+  .rubric-table th{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:#8FE0C6;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .deadline-tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:12px;
+    background:rgba(255,255,255,.1); padding:5px 10px; border-radius:100px; color:#F2F1EA; margin-top:16px;
+  }
+
+  .ref-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .ref-list li{font-size:13.5px; color:var(--ink-soft); padding-left:18px; position:relative;}
+  .ref-list li::before{content:"—"; position:absolute; left:0; color:var(--pass);}
+  .ref-list b{color:var(--ink);}
+
+  .summary-list{list-style:none; margin:0; padding:0; display:grid; gap:8px;}
+  .summary-list li{
+    display:flex; gap:10px; align-items:flex-start; font-size:14px;
+    background:var(--pass-bg); padding:10px 14px; border-radius:8px; color:#0C4F44;
+  }
+
+  footer{
+    border-top:1px solid var(--rule); padding-top:24px; margin-top:20px;
+    color:var(--ink-soft); font-size:13px; display:flex; justify-content:space-between;
+    flex-wrap:wrap; gap:8px;
+  }
+  .nav-next{
+    display:flex; justify-content:space-between; align-items:center; gap:16px;
+    border:1px solid var(--rule); border-radius:12px; padding:18px 22px; margin-top:40px;
+  }
+  .nav-next a{text-decoration:none; font-size:13.5px; color:var(--ink-soft);}
+  .nav-next .to-next{color:var(--pass); font-weight:500;}
+
+  @media (max-width:860px){
+    .sidebar{display:none;}
+    .wrap{padding:40px 20px 80px;}
+    h1{font-size:28px;}
+    .funnel-level.scenario{width:92%;}
+    .funnel-level.case{width:80%;}
+  }
+  .code-block{background:#1F2420; color:#E8E6DA; border-radius:10px; padding:14px 18px; overflow-x:auto; font-family:'IBM Plex Mono',monospace; font-size:12.5px; line-height:1.6; margin:12px 0; white-space:pre;}
+  .code-block .c{color:#8A9A8F;}
+  p code, li code, td code{font-family:'IBM Plex Mono',monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;}
+  .task-card code, .task-card p code{background:rgba(255,255,255,.14); color:#F2F1EA;}
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav class="sidebar">
+    <a class="back-link" href="index.html">← Kembali ke Beranda</a>
+    <div class="brand-sub">software-testing / sesi-10</div>
+    <div class="brand-name">Procedural &amp; Object Oriented Testing</div>
+    <div class="nav-label">Isi Halaman</div>
+    <a class="toc-link" href="#pendahuluan">Pendahuluan</a>
+    <a class="toc-link" href="#tujuan">Tujuan Pembelajaran</a>
+    <a class="toc-link" href="#procedural">10.1 Procedural Testing</a>
+    <a class="toc-link" href="#path">10.2 Basis Path &amp; Cyclomatic</a>
+    <a class="toc-link" href="#dataflow">10.3 Data Flow &amp; Loop</a>
+    <a class="toc-link" href="#oo">10.4 Object Oriented Testing</a>
+    <a class="toc-link" href="#state">10.5 State-based Testing</a>
+    <a class="toc-link" href="#inheritance">10.6 Inheritance &amp; Polimorfisme</a>
+    <a class="toc-link" href="#banding">10.7 Perbandingan</a>
+    <a class="toc-link" href="#studikasus">Latihan Kelas</a>
+    <a class="toc-link" href="#rangkuman">Rangkuman</a>
+    <a class="toc-link" href="#latihan">Latihan Pemahaman</a>
+    <a class="toc-link" href="#tugas">Tugas Sesi 10</a>
+    <a class="toc-link" href="#referensi">Referensi</a>
+  </nav>
+  <main>
+    <div class="wrap">
+
+      <section id="pendahuluan">
+        <div class="eyebrow">sesi-10 / 14</div>
+        <h1>Procedural Testing &amp; Object Oriented Testing</h1>
+        <p class="lead">Dua sesi sebelumnya membahas alat untuk menulis unit test. Sesi ini membahas <i>cara berpikir</i> merancang test sesuai paradigma kode: prosedural (alur kontrol dan aliran data) dan berorientasi objek (state, pewarisan, polimorfisme). Contoh memakai Python dan PyTest.</p>
+        <div class="meta-row">
+          <span class="meta-chip">⏱ 50 menit</span>
+          <span class="meta-chip">🎯 CPMK-3, CPMK-4</span>
+          <span class="meta-chip">🧩 White-box &amp; OO</span>
+        </div>
+      </section>
+
+      <section id="tujuan">
+        <h2>Tujuan Pembelajaran</h2>
+        <p class="sec-desc">Setelah mengikuti sesi ini, mahasiswa mampu:</p>
+        <div class="card"><ul class="obj-list">
+          <li><span class="check">✓</span> Menjelaskan karakteristik pengujian prosedural dan pengujian berorientasi objek.</li>
+          <li><span class="check">✓</span> Menggambar control flow graph dan menghitung cyclomatic complexity.</li>
+          <li><span class="check">✓</span> Menurunkan test case dari basis path, data flow, dan loop testing.</li>
+          <li><span class="check">✓</span> Menguji class berbasis state serta kasus pewarisan dan polimorfisme.</li>
+          <li><span class="check">✓</span> Memilih strategi pengujian yang tepat untuk kode prosedural versus OO.</li>
+        </ul></div>
+      </section>
+
+      <section id="procedural">
+        <div class="eyebrow">10.1</div>
+        <h2>Procedural Testing</h2>
+        <p><b>Procedural testing</b> menguji kode yang tersusun dari fungsi/prosedur dengan alur kontrol (percabangan dan perulangan) serta data yang mengalir antarvariabel. Pendekatannya <b>white-box</b>: test dirancang dari struktur internal kode, bukan hanya dari spesifikasi.</p>
+        <div class="card"><table class="trace-table">
+          <tr><th>Teknik</th><th>Fokus</th><th>Pertanyaan yang dijawab</th></tr>
+          <tr><td>Statement / Branch Coverage</td><td>Baris dan cabang</td><td>Apakah semua baris dan keputusan pernah dijalankan?</td></tr>
+          <tr><td>Basis Path Testing</td><td>Jalur independen</td><td>Berapa test minimum agar setiap jalur independen teruji?</td></tr>
+          <tr><td>Data Flow Testing</td><td>Definisi &amp; pemakaian variabel</td><td>Apakah setiap nilai variabel benar-benar dipakai dengan benar?</td></tr>
+          <tr><td>Loop Testing</td><td>Perulangan</td><td>Bagaimana perilaku di 0, 1, dan banyak iterasi?</td></tr>
+        </table></div>
+        <div class="callout info"><span class="callout-icon">💡</span><span>Statement dan Branch Coverage sudah dibahas di sesi 6. Sesi ini melanjutkan ke teknik yang lebih sistematis dalam menentukan <i>test mana yang minimal dan cukup</i>.</span></div>
+      </section>
+
+      <section id="path">
+        <div class="eyebrow">10.2</div>
+        <h2>Basis Path Testing &amp; Cyclomatic Complexity</h2>
+        <p>Langkah: (1) ubah kode menjadi <b>control flow graph</b> (node = blok statement, edge = aliran kontrol), (2) hitung <b>cyclomatic complexity</b> V(G), (3) tentukan V(G) jalur independen, (4) buat satu test per jalur.</p>
+        <div class="code-block">def ongkir(berat, kota, member):
+    if berat &lt;= 0:                  <span class="c"># keputusan 1</span>
+        raise ValueError("Berat tidak valid")
+    biaya = berat * 5_000
+    if kota == "luar":              <span class="c"># keputusan 2</span>
+        biaya += 20_000
+    if member:                      <span class="c"># keputusan 3</span>
+        biaya *= 0.9
+    return biaya</div>
+        <div class="card"><table class="trace-table">
+          <tr><th>Rumus V(G)</th><th>Hasil pada fungsi di atas</th></tr>
+          <tr><td>Jumlah keputusan + 1</td><td>3 + 1 = <b>4</b></td></tr>
+          <tr><td>Edge − Node + 2</td><td>Sama, yaitu 4 (dari graph)</td></tr>
+          <tr><td>Jumlah region pada graph</td><td>4</td></tr>
+        </table></div>
+        <p>Karena V(G) = 4, diperlukan <b>minimal 4 test</b> untuk menutup semua jalur independen:</p>
+        <div class="code-block">import pytest
+from ongkir_mod import ongkir
+
+def test_jalur1_berat_tidak_valid():
+    with pytest.raises(ValueError):
+        ongkir(0, "dalam", False)
+
+def test_jalur2_dalam_kota_non_member():
+    assert ongkir(2, "dalam", False) == 10_000
+
+def test_jalur3_luar_kota_non_member():
+    assert ongkir(2, "luar", False) == 30_000
+
+def test_jalur4_luar_kota_member():
+    assert ongkir(2, "luar", True) == pytest.approx(27_000)</div>
+        <div class="callout tip"><span class="callout-icon">✓</span><span><b>Kegunaan V(G):</b> selain menentukan jumlah test minimum, V(G) mengukur kerumitan kode. Nilai umumnya dianggap sederhana (1–10), perlu perhatian (11–20), dan berisiko tinggi (&gt;20) sehingga layak di-refactor.</span></div>
+      </section>
+
+      <section id="dataflow">
+        <div class="eyebrow">10.3</div>
+        <h2>Data Flow &amp; Loop Testing</h2>
+        <h3>Data Flow Testing</h3>
+        <p>Menelusuri siklus hidup variabel: <b>def</b> (diberi nilai), <b>c-use</b> (dipakai dalam perhitungan), <b>p-use</b> (dipakai dalam kondisi). Test dirancang agar setiap pasangan def–use terlewati.</p>
+        <div class="card"><table class="trace-table">
+          <tr><th>Anomali</th><th>Contoh</th><th>Risiko</th></tr>
+          <tr><td>Use tanpa def</td><td>Variabel dipakai sebelum diberi nilai</td><td>Error atau nilai tak terduga</td></tr>
+          <tr><td>Def tanpa use</td><td><code>biaya</code> dihitung tetapi tidak pernah dipakai</td><td>Kode mati atau logika terlewat</td></tr>
+          <tr><td>Def dua kali berturut</td><td>Nilai pertama ditimpa tanpa dipakai</td><td>Kemungkinan salah ketik/logika</td></tr>
+        </table></div>
+        <h3>Loop Testing</h3>
+        <div class="card"><table class="trace-table">
+          <tr><th>Skenario</th><th>Untuk loop dengan batas n</th></tr>
+          <tr><td>Lewati loop</td><td>0 iterasi</td></tr>
+          <tr><td>Iterasi minimum</td><td>1 iterasi</td></tr>
+          <tr><td>Iterasi umum</td><td>2 hingga n−1 iterasi</td></tr>
+          <tr><td>Batas</td><td>n−1, n, dan n+1 iterasi</td></tr>
+        </table></div>
+        <div class="code-block">@pytest.mark.parametrize("data, total", [
+    ([], 0),               <span class="c"># 0 iterasi</span>
+    ([5], 5),              <span class="c"># 1 iterasi</span>
+    ([1, 2, 3], 6),        <span class="c"># banyak iterasi</span>
+])
+def test_jumlah_loop(data, total):
+    assert jumlah(data) == total</div>
+      </section>
+
+      <section id="oo">
+        <div class="eyebrow">10.4</div>
+        <h2>Object Oriented Testing</h2>
+        <p>Pada kode OO, unit terkecil bukan lagi fungsi, melainkan <b>class</b>: data (atribut) dan perilaku (method) berpadu. Hasil sebuah method sering bergantung pada <b>state</b> objek akibat pemanggilan sebelumnya, sehingga menguji method satu per satu secara terpisah tidak cukup.</p>
+        <div class="card"><table class="trace-table">
+          <tr><th>Karakteristik OO</th><th>Tantangan pengujian</th></tr>
+          <tr><td>Encapsulation</td><td>State internal tersembunyi; verifikasi lewat perilaku publik, bukan mengintip atribut privat</td></tr>
+          <tr><td>State</td><td>Urutan pemanggilan method memengaruhi hasil</td></tr>
+          <tr><td>Inheritance</td><td>Method turunan dapat berperilaku berbeda dalam konteks subclass</td></tr>
+          <tr><td>Polymorphism</td><td>Satu pemanggilan, banyak kemungkinan implementasi</td></tr>
+          <tr><td>Collaboration</td><td>Objek bergantung pada objek lain (butuh stub/mock)</td></tr>
+        </table></div>
+        <h3>Level Pengujian pada OO</h3>
+        <div class="card"><ul class="component-list">
+          <li class="component-item"><span class="component-num">01</span><div><div class="component-title">Method</div><div class="component-desc">Menguji satu method dengan teknik prosedural (basis path, BVA).</div></div></li>
+          <li class="component-item"><span class="component-num">02</span><div><div class="component-title">Class</div><div class="component-desc">Menguji urutan pemanggilan method dan perubahan state.</div></div></li>
+          <li class="component-item"><span class="component-num">03</span><div><div class="component-title">Cluster</div><div class="component-desc">Menguji sekelompok class yang saling berkolaborasi (integration test).</div></div></li>
+        </ul></div>
+      </section>
+
+      <section id="state">
+        <div class="eyebrow">10.5</div>
+        <h2>State-based Testing</h2>
+        <p>Contoh class kursi pada sistem reservasi (relevan dengan proyek Kelompok A), dengan state <b>TERSEDIA → DIPESAN → TERJUAL</b>:</p>
+        <div class="code-block">class Kursi:
+    def __init__(self):
+        self.status = "TERSEDIA"
+
+    def pesan(self):
+        if self.status != "TERSEDIA":
+            raise RuntimeError("Kursi tidak tersedia")
+        self.status = "DIPESAN"
+
+    def bayar(self):
+        if self.status != "DIPESAN":
+            raise RuntimeError("Belum dipesan")
+        self.status = "TERJUAL"
+
+    def batal(self):
+        if self.status == "DIPESAN":
+            self.status = "TERSEDIA"</div>
+        <p>Rancang test dari <b>state machine</b>: setiap transisi valid diuji, dan setiap transisi tidak valid harus ditolak.</p>
+        <div class="card"><table class="trace-table">
+          <tr><th>State awal</th><th>Event</th><th>Hasil yang diharapkan</th></tr>
+          <tr><td>TERSEDIA</td><td><code>pesan()</code></td><td>DIPESAN</td></tr>
+          <tr><td>TERSEDIA</td><td><code>bayar()</code></td><td>RuntimeError (transisi tidak valid)</td></tr>
+          <tr><td>DIPESAN</td><td><code>bayar()</code></td><td>TERJUAL</td></tr>
+          <tr><td>DIPESAN</td><td><code>batal()</code></td><td>TERSEDIA</td></tr>
+          <tr><td>DIPESAN</td><td><code>pesan()</code></td><td>RuntimeError (pesan ganda)</td></tr>
+          <tr><td>TERJUAL</td><td><code>pesan()</code> / <code>batal()</code></td><td>Error / state tetap TERJUAL</td></tr>
+        </table></div>
+        <div class="code-block">@pytest.fixture
+def kursi_dipesan():
+    k = Kursi(); k.pesan()
+    return k
+
+def test_pesan_mengubah_state():
+    k = Kursi(); k.pesan()
+    assert k.status == "DIPESAN"
+
+def test_bayar_dari_dipesan(kursi_dipesan):
+    kursi_dipesan.bayar()
+    assert kursi_dipesan.status == "TERJUAL"
+
+def test_pesan_ganda_ditolak(kursi_dipesan):
+    with pytest.raises(RuntimeError):
+        kursi_dipesan.pesan()
+
+def test_bayar_tanpa_pesan_ditolak():
+    with pytest.raises(RuntimeError):
+        Kursi().bayar()
+
+def test_batal_mengembalikan_tersedia(kursi_dipesan):
+    kursi_dipesan.batal()
+    assert kursi_dipesan.status == "TERSEDIA"</div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><span>Test di atas memeriksa <code>status</code> secara langsung karena atribut itu bagian dari kontrak publik. Jika state benar-benar privat, verifikasi lewat perilaku yang teramati (mis. method <code>tersedia()</code>), jangan lewat atribut internal.</span></div>
+      </section>
+
+      <section id="inheritance">
+        <div class="eyebrow">10.6</div>
+        <h2>Inheritance &amp; Polimorfisme</h2>
+        <div class="code-block">class Pembayaran:
+    def biaya_admin(self, nominal):
+        return 2_500
+
+class KartuKredit(Pembayaran):
+    def biaya_admin(self, nominal):          <span class="c"># override</span>
+        return nominal * 0.025
+
+class Gopay(Pembayaran):
+    pass                                      <span class="c"># mewarisi apa adanya</span></div>
+        <div class="card"><ul class="obj-list">
+          <li><span class="check">✓</span> <b>Uji ulang method warisan di subclass.</b> Method yang diwarisi dapat berperilaku berbeda karena state atau method lain yang di-override.</li>
+          <li><span class="check">✓</span> <b>Uji setiap override.</b> Subclass hanya lolos jika perilakunya tetap konsisten dengan kontrak parent (Liskov Substitution Principle).</li>
+          <li><span class="check">✓</span> <b>Gunakan satu rangkaian test untuk semua subclass.</b> Test dijalankan terhadap tiap implementasi dengan <code>parametrize</code>.</li>
+          <li><span class="check">✓</span> <b>Abstract class tidak bisa diinstansiasi.</b> Uji lewat subclass konkret atau test double.</li>
+        </ul></div>
+        <div class="code-block">@pytest.mark.parametrize("kelas", [Pembayaran, KartuKredit, Gopay])
+def test_kontrak_biaya_admin_tidak_negatif(kelas):
+    assert kelas().biaya_admin(100_000) &gt;= 0     <span class="c"># kontrak umum semua subclass</span>
+
+def test_kartu_kredit_menghitung_persen():
+    assert KartuKredit().biaya_admin(100_000) == 2_500</div>
+        <p style="font-size:13.5px; color:var(--ink-soft);">Untuk kolaborasi antarobjek (mis. <code>Kursi</code> memanggil layanan notifikasi), gunakan mock seperti pada sesi 9 agar class diuji secara terisolasi.</p>
+      </section>
+
+      <section id="banding">
+        <div class="eyebrow">10.7</div>
+        <h2>Perbandingan Procedural vs Object Oriented Testing</h2>
+        <div class="card"><table class="trace-table">
+          <tr><th>Aspek</th><th>Procedural</th><th>Object Oriented</th></tr>
+          <tr><td>Unit uji</td><td>Fungsi/prosedur</td><td>Class (method + state)</td></tr>
+          <tr><td>Fokus utama</td><td>Alur kontrol &amp; aliran data</td><td>State, interaksi, pewarisan</td></tr>
+          <tr><td>Teknik andalan</td><td>Basis path, data flow, loop</td><td>State-based, sequence test, kontrak subclass</td></tr>
+          <tr><td>Ketergantungan hasil</td><td>Terutama pada input</td><td>Input <i>dan</i> riwayat pemanggilan</td></tr>
+          <tr><td>Isolasi dependensi</td><td>Jarang dibutuhkan</td><td>Sering memakai mock/stub</td></tr>
+        </table></div>
+        <div class="callout info"><span class="callout-icon">💡</span><span>Keduanya saling melengkapi. Di dalam sebuah class OO, setiap method tetap berisi logika prosedural yang diuji dengan basis path dan BVA; teknik OO menambahkan lapisan untuk state dan hubungan antarclass.</span></div>
+      </section>
+
+      <section id="studikasus">
+        <h2>Latihan Kelas: Dua Pendekatan, Satu Sistem</h2>
+        <p class="sec-desc">Kerjakan berpasangan selama 15 menit.</p>
+        <div class="case-card"><span class="case-tag">Latihan</span>
+          <h4 style="margin-top:0;">Kode Promo &amp; Keranjang Belanja</h4>
+          <p><b>Bagian A (prosedural):</b> fungsi <code>hitung_promo(total, kode, member)</code> memiliki 4 keputusan: total &gt; 0, kode valid, kode kedaluwarsa, dan member.</p>
+          <ul>
+            <li>Hitung V(G) dan tuliskan jalur independennya.</li>
+            <li>Buat satu test PyTest per jalur.</li>
+          </ul>
+          <p><b>Bagian B (OO):</b> class <code>Keranjang</code> dengan state KOSONG → BERISI → CHECKOUT.</p>
+          <ul>
+            <li>Gambar state machine dan tabel transisi valid/tidak valid.</li>
+            <li>Tulis minimal 4 test, termasuk 2 transisi tidak valid.</li>
+          </ul>
+          <p class="prompt-q">Pada Bagian B, mengapa memanggil <code>checkout()</code> pada keranjang KOSONG harus diuji secara eksplisit?</p>
+        </div>
+      </section>
+
+      <section id="rangkuman">
+        <h2>Rangkuman</h2>
+        <ul class="summary-list">
+          <li><span>✓</span> Procedural testing bersifat white-box: berfokus pada alur kontrol dan aliran data fungsi.</li>
+          <li><span>✓</span> Cyclomatic complexity V(G) = jumlah keputusan + 1 sekaligus menjadi jumlah test minimum pada basis path testing.</li>
+          <li><span>✓</span> Data flow dan loop testing menangkap bug yang lolos dari coverage biasa.</li>
+          <li><span>✓</span> Pada OO testing, unit adalah class: state, urutan pemanggilan, pewarisan, dan polimorfisme menjadi fokus.</li>
+          <li><span>✓</span> State machine membantu menurunkan test transisi valid maupun tidak valid secara sistematis.</li>
+        </ul>
+      </section>
+
+      <section id="latihan">
+        <h2>Latihan Pemahaman Mandiri</h2>
+        <p class="sec-desc">Klik tiap soal untuk melihat kunci jawaban.</p>
+        <details><summary>1. Sebuah fungsi memiliki 5 keputusan (if) yang tidak bersarang. Berapa V(G) dan test minimumnya?</summary>
+          <div class="answer"><b>Jawaban:</b> V(G) = 5 + 1 = 6, sehingga dibutuhkan minimal 6 test untuk menutup semua jalur independen.</div></details>
+        <details><summary>2. Mengapa 100% statement coverage belum tentu menutup semua jalur?</summary>
+          <div class="answer"><b>Jawaban:</b> Statement coverage hanya memastikan setiap baris dijalankan. Cabang "tidak" dari sebuah <code>if</code> tanpa <code>else</code>, serta kombinasi antarkeputusan, bisa tidak pernah diuji meski semua baris sudah tersentuh.</div></details>
+        <details><summary>3. Mengapa method yang diwarisi tetap perlu diuji ulang pada subclass?</summary>
+          <div class="answer"><b>Jawaban:</b> Karena konteksnya berubah: subclass dapat meng-override method yang dipanggil di dalamnya atau menambah state, sehingga perilaku method warisan dapat berbeda dari yang diuji pada parent.</div></details>
+        <details><summary>4. Apa yang membedakan pengujian class dari pengujian fungsi biasa?</summary>
+          <div class="answer"><b>Jawaban:</b> Hasil method class dapat bergantung pada state hasil pemanggilan sebelumnya, sehingga test harus mencakup urutan pemanggilan dan transisi state, bukan hanya pasangan input–output.</div></details>
+      </section>
+
+      <section id="tugas">
+        <h2>Tugas Sesi 10</h2>
+        <div class="task-card">
+          <h3>Procedural &amp; OO Test Suite</h3>
+          <p>Pilih satu modul prosedural dan satu class OO dari topik proyek kelompok Anda (boleh disederhanakan). Kerjakan:</p>
+          <p style="color:#F2F1EA;">(1) Control flow graph, perhitungan V(G), dan daftar jalur independen untuk satu fungsi dengan minimal 3 keputusan<br>(2) Test PyTest yang menutup semua jalur tersebut<br>(3) State machine dan tabel transisi untuk satu class dengan minimal 3 state<br>(4) Test class yang mencakup transisi valid dan tidak valid, serta minimal 1 kasus pewarisan atau polimorfisme<br>(5) Laporan <code>--cov-branch</code> beserta analisisnya</p>
+          <table class="rubric-table">
+            <tr><th>Kriteria</th><th>Bobot</th></tr>
+            <tr><td>Ketepatan CFG &amp; V(G) serta jalur independen</td><td>30%</td></tr>
+            <tr><td>Kualitas test state-based (valid &amp; tidak valid)</td><td>30%</td></tr>
+            <tr><td>Pengujian inheritance/polimorfisme</td><td>15%</td></tr>
+            <tr><td>Kerapian test &amp; bukti coverage</td><td>25%</td></tr>
+          </table>
+          <span class="deadline-tag">⏳ Dikumpulkan sebelum sesi 11</span>
+        </div>
+      </section>
+
+      <section id="referensi">
+        <h2>Referensi Sesi Ini</h2>
+        <div class="card"><ul class="ref-list">
+          <li><b>Pressman, R.S. &amp; Maxim, B.R.</b> — Software Engineering: A Practitioner's Approach, bab Testing Conventional Applications dan Object-Oriented Testing.</li>
+          <li><b>McCabe, T.J.</b> — "A Complexity Measure", IEEE Transactions on Software Engineering, 1976.</li>
+          <li><b>Binder, R.V.</b> — Testing Object-Oriented Systems: Models, Patterns, and Tools, Addison-Wesley.</li>
+          <li><b>Black, R., Graham, D., van Veenendaal, E.</b> — Foundations of Software Testing: ISTQB Certification, bab white-box techniques.</li>
+        </ul></div>
+      </section>
+
+      <div class="nav-next">
+        <a href="sesi9.html">← Sesi 9: Unit Testing (PyTest)</a>
+        <a class="to-next" href="index.html#silabus">Sesi 11: Automated Testing &amp; CI/CD →</a>
+      </div>
+
+      <footer>
+        <span>Mata Kuliah Software Testing · 3 SKS</span>
+        <span>Dosen Pengampu: Philipus Suryo Subandoro</span>
+      </footer>
+    </div>
+  </main>
+</div>
+</body>
+</html>
