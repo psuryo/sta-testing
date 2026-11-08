@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sesi 11 — Automated Testing &amp; Pengenalan CI/CD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAFAF7;
+    --paper-raised:#FFFFFF;
+    --ink:#1A1D29;
+    --ink-soft:#565B6E;
+    --rule:#E1DED4;
+    --pass:#0F6B5C;
+    --pass-bg:#E9F3EF;
+    --info:#2C5F8A;
+    --info-bg:#EAF1F7;
+    --amber:#A9761E;
+    --amber-bg:#FBF2E1;
+    --red:#B5432E;
+    --red-bg:#FBEDE9;
+    --mono-bg:#1A1D29;
+    --mono-text:#D9F2E6;
+    --sidebar-w:250px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+
+  .shell{display:flex; min-height:100vh;}
+
+  .sidebar{
+    width:var(--sidebar-w); flex-shrink:0;
+    background:var(--ink); color:#EDEBE0;
+    padding:32px 22px 40px;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .back-link{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:'IBM Plex Mono', monospace; font-size:12px;
+    color:#8FE0C6; text-decoration:none; margin-bottom:26px;
+  }
+  .back-link:hover{text-decoration:underline;}
+  .brand-sub{
+    font-family:'IBM Plex Mono', monospace; font-size:11px;
+    color:#7C8093; margin-bottom:4px;
+  }
+  .brand-name{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:17px; color:#fff; margin-bottom:24px;
+  }
+  .nav-label{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px;
+    text-transform:uppercase; letter-spacing:.08em; color:#7C8093; margin-bottom:10px;
+  }
+  .toc-link{
+    display:block; font-size:13px; color:#C9C7BC; text-decoration:none;
+    padding:6px 0 6px 12px; border-left:2px solid #3A3D4A;
+    transition:all .15s;
+  }
+  .toc-link:hover{color:#fff; border-left-color:#4FE3B8;}
+
+  main{flex:1; min-width:0;}
+  .wrap{max-width:800px; margin:0 auto; padding:56px 32px 100px;}
+
+  section{margin-bottom:56px; scroll-margin-top:24px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px; color:var(--pass);
+    letter-spacing:.06em; margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:"$"; color:var(--ink-soft);}
+  h1{
+    font-family:'Space Grotesk', sans-serif; font-size:36px; font-weight:700;
+    margin:0 0 14px; letter-spacing:-.01em; line-height:1.15;
+  }
+  h2{
+    font-family:'Space Grotesk', sans-serif; font-size:23px; font-weight:600; margin:0 0 6px;
+  }
+  h3{
+    font-family:'Space Grotesk', sans-serif; font-size:18px; font-weight:600; margin:26px 0 10px;
+  }
+  h4{font-size:15px; font-weight:600; margin:18px 0 8px;}
+  .lead{color:var(--ink-soft); font-size:16px; max-width:620px;}
+  .sec-desc{color:var(--ink-soft); font-size:14.5px; margin:0 0 20px;}
+  p{font-size:14.5px; margin:0 0 12px;}
+
+  .meta-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:20px;}
+  .meta-chip{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; background:var(--paper-raised);
+    border:1px solid var(--rule); padding:6px 12px; border-radius:100px; color:var(--ink-soft);
+  }
+
+  .card{
+    background:var(--paper-raised); border:1px solid var(--rule);
+    border-radius:12px; padding:22px 24px;
+  }
+
+  .obj-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .obj-list li{display:flex; gap:12px; align-items:flex-start; font-size:14.5px;}
+  .check{
+    flex-shrink:0; width:20px; height:20px; border-radius:5px; background:var(--pass-bg);
+    color:var(--pass); display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:700; margin-top:2px;
+  }
+
+  .callout{
+    display:flex; gap:12px; align-items:flex-start; border-radius:10px;
+    padding:14px 16px; font-size:14px; margin:16px 0;
+  }
+  .callout.info{background:var(--info-bg); border:1px solid #C7DBEA; color:#1E4560;}
+  .callout.tip{background:var(--pass-bg); border:1px solid #C9E4DA; color:#0C4F44;}
+  .callout.warn{background:var(--amber-bg); border:1px solid #ECD9B0; color:#6B4A0F;}
+  .callout b{font-weight:600;}
+  .callout-icon{font-size:16px; flex-shrink:0;}
+
+  /* hierarchy funnel: Test Plan -> Scenario -> Case */
+  .funnel{display:flex; flex-direction:column; align-items:center; gap:0; margin:20px 0;}
+  .funnel-level{
+    border-radius:10px; padding:16px 24px; text-align:center; width:100%;
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .funnel-level.plan{background:var(--ink); color:#fff; width:100%;}
+  .funnel-level.scenario{background:var(--info-bg); border:1px solid #C7DBEA; width:80%; margin-top:10px;}
+  .funnel-level.case{background:var(--pass-bg); border:1px solid #C9E4DA; width:60%; margin-top:10px;}
+  .funnel-level .ftitle{font-weight:700; font-size:14px;}
+  .funnel-level .fsub{font-size:12px; opacity:.85; margin-top:2px;}
+  .funnel-arrow{font-family:'IBM Plex Mono', monospace; color:var(--ink-soft); font-size:13px; margin:2px 0;}
+
+  /* IEEE 829 component list */
+  .component-list{list-style:none; margin:0; padding:0; display:grid; gap:0;}
+  .component-item{
+    display:grid; grid-template-columns:28px 1fr; gap:14px;
+    padding:14px 0; border-bottom:1px solid var(--rule);
+  }
+  .component-item:last-child{border-bottom:none;}
+  .component-num{
+    font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--pass); font-weight:600;
+  }
+  .component-title{font-weight:600; font-size:14px; margin-bottom:3px;}
+  .component-desc{color:var(--ink-soft); font-size:13px;}
+
+  /* test case detail card */
+  .tc-detail{border:1px solid var(--rule); border-radius:12px; overflow:hidden; background:var(--paper-raised);}
+  .tc-detail-header{
+    background:var(--ink); color:#fff; padding:12px 18px; font-family:'IBM Plex Mono', monospace;
+    font-size:13px; display:flex; justify-content:space-between; align-items:center;
+  }
+  .tc-detail table{width:100%; border-collapse:collapse; font-size:13px;}
+  .tc-detail th, .tc-detail td{border:1px solid var(--rule); padding:9px 14px; text-align:left; vertical-align:top;}
+  .tc-detail th{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:500;
+    font-size:11px; color:var(--ink-soft); text-transform:uppercase; width:160px;
+  }
+  .tc-detail td code{font-family:'IBM Plex Mono', monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;}
+  .tc-detail ol{margin:0; padding-left:18px;}
+  .tc-detail ol li{margin-bottom:4px;}
+
+  /* traceability matrix */
+  .trace-table{width:100%; border-collapse:collapse; font-size:13px;}
+  .trace-table th, .trace-table td{border:1px solid var(--rule); padding:9px 12px; text-align:left;}
+  .trace-table th{
+    background:var(--paper); font-family:'IBM Plex Mono', monospace; font-weight:500;
+    font-size:10.5px; color:var(--ink-soft); text-transform:uppercase;
+  }
+  .trace-table code{font-family:'IBM Plex Mono', monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;}
+  .trace-table .status-covered{color:var(--pass); font-weight:600;}
+
+  /* best practice do/dont */
+  .dodont-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:680px){.dodont-grid{grid-template-columns:1fr;}}
+  .dodont-card{border-radius:12px; padding:18px 20px;}
+  .dodont-card.do{background:var(--pass-bg); border:1px solid #C9E4DA;}
+  .dodont-card.dont{background:var(--red-bg); border:1px solid #F0C4B8;}
+  .dodont-card h4{margin-top:0;}
+  .dodont-card ul{margin:8px 0 0; padding-left:18px; font-size:13.5px;}
+  .dodont-card li{margin-bottom:6px;}
+
+  .case-card{border:1px solid var(--rule); border-radius:12px; padding:20px 22px; background:var(--paper-raised);}
+  .case-card .case-tag{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--info);
+    background:var(--info-bg); display:inline-block; padding:3px 9px; border-radius:100px; margin-bottom:10px;
+  }
+  .case-card p{font-size:13.5px; color:var(--ink-soft); margin-bottom:8px;}
+  .case-card .prompt-q{font-size:13.5px; color:var(--ink); font-weight:500; margin-top:12px;}
+  .case-card ul{font-size:13.5px; color:var(--ink-soft); margin:8px 0;}
+
+  details{
+    border:1px solid var(--rule); border-radius:10px; padding:14px 18px; margin-bottom:10px; background:var(--paper-raised);
+  }
+  summary{
+    cursor:pointer; font-size:14.5px; font-weight:500; list-style:none;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"+"; color:var(--pass); font-family:'IBM Plex Mono', monospace; font-size:16px;}
+  details[open] summary::after{content:"–";}
+  details[open] summary{margin-bottom:10px;}
+  .answer{font-size:13.5px; color:var(--ink-soft); border-top:1px solid var(--rule); padding-top:10px;}
+  .answer b{color:var(--pass);}
+
+  .task-card{background:var(--ink); color:#F2F1EA; border-radius:12px; padding:26px 28px;}
+  .task-card h3{color:#fff; margin-top:0;}
+  .task-card p{color:#D8D6CC; font-size:14px;}
+  .rubric-table{width:100%; border-collapse:collapse; margin-top:14px; font-size:13px;}
+  .rubric-table th, .rubric-table td{
+    border:1px solid rgba(255,255,255,.15); padding:9px 12px; text-align:left; color:#D8D6CC;
+  }
+  .rubric-table th{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:#8FE0C6;
+    text-transform:uppercase; letter-spacing:.03em;
+  }
+  .deadline-tag{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:12px;
+    background:rgba(255,255,255,.1); padding:5px 10px; border-radius:100px; color:#F2F1EA; margin-top:16px;
+  }
+
+  .ref-list{list-style:none; margin:0; padding:0; display:grid; gap:10px;}
+  .ref-list li{font-size:13.5px; color:var(--ink-soft); padding-left:18px; position:relative;}
+  .ref-list li::before{content:"—"; position:absolute; left:0; color:var(--pass);}
+  .ref-list b{color:var(--ink);}
+
+  .summary-list{list-style:none; margin:0; padding:0; display:grid; gap:8px;}
+  .summary-list li{
+    display:flex; gap:10px; align-items:flex-start; font-size:14px;
+    background:var(--pass-bg); padding:10px 14px; border-radius:8px; color:#0C4F44;
+  }
+
+  footer{
+    border-top:1px solid var(--rule); padding-top:24px; margin-top:20px;
+    color:var(--ink-soft); font-size:13px; display:flex; justify-content:space-between;
+    flex-wrap:wrap; gap:8px;
+  }
+  .nav-next{
+    display:flex; justify-content:space-between; align-items:center; gap:16px;
+    border:1px solid var(--rule); border-radius:12px; padding:18px 22px; margin-top:40px;
+  }
+  .nav-next a{text-decoration:none; font-size:13.5px; color:var(--ink-soft);}
+  .nav-next .to-next{color:var(--pass); font-weight:500;}
+
+  @media (max-width:860px){
+    .sidebar{display:none;}
+    .wrap{padding:40px 20px 80px;}
+    h1{font-size:28px;}
+    .funnel-level.scenario{width:92%;}
+    .funnel-level.case{width:80%;}
+  }
+  .code-block{background:#1F2420; color:#E8E6DA; border-radius:10px; padding:14px 18px; overflow-x:auto; font-family:'IBM Plex Mono',monospace; font-size:12.5px; line-height:1.6; margin:12px 0; white-space:pre;}
+  .code-block .c{color:#8A9A8F;}
+  p code, li code, td code{font-family:'IBM Plex Mono',monospace; background:#EFEDE4; padding:1px 6px; border-radius:4px; font-size:12px;}
+  .task-card code, .task-card p code{background:rgba(255,255,255,.14); color:#F2F1EA;}
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav class="sidebar">
+    <a class="back-link" href="index.html">← Kembali ke Beranda</a>
+    <div class="brand-sub">software-testing / sesi-11</div>
+    <div class="brand-name">Automated Testing &amp; Pengenalan CI/CD</div>
+    <div class="nav-label">Isi Halaman</div>
+    <a class="toc-link" href="#pendahuluan">Pendahuluan</a>
+    <a class="toc-link" href="#tujuan">Tujuan Pembelajaran</a>
+    <a class="toc-link" href="#otomasi">11.1 Mengapa Otomasi</a>
+    <a class="toc-link" href="#tools">11.2 Peta Tools</a>
+    <a class="toc-link" href="#selenium">11.3 Selenium</a>
+    <a class="toc-link" href="#cypress">11.4 Cypress</a>
+    <a class="toc-link" href="#praktik">11.5 Praktik Terbaik</a>
+    <a class="toc-link" href="#api">11.6 Otomasi Pengujian API</a>
+    <a class="toc-link" href="#cicd">11.7 Pengenalan CI/CD</a>
+    <a class="toc-link" href="#studikasus">Latihan Kelas</a>
+    <a class="toc-link" href="#rangkuman">Rangkuman</a>
+    <a class="toc-link" href="#latihan">Latihan Pemahaman</a>
+    <a class="toc-link" href="#tugas">Tugas Sesi 11</a>
+    <a class="toc-link" href="#referensi">Referensi</a>
+  </nav>
+  <main>
+    <div class="wrap">
+
+      <section id="pendahuluan">
+        <div class="eyebrow">sesi-11 / 14</div>
+        <h1>Automated Testing (Selenium, Cypress, dsb.) &amp; Pengenalan Integrasi CI/CD</h1>
+        <p class="lead">Unit test mencakup level terkecil. Sesi ini naik ke pengujian otomatis pada level antarmuka (UI) dan API, lalu menghubungkan seluruh test ke pipeline CI/CD sehingga setiap perubahan kode diuji otomatis tanpa campur tangan manual.</p>
+        <div class="meta-row">
+          <span class="meta-chip">⏱ 50 menit</span>
+          <span class="meta-chip">🎯 CPMK-3, CPMK-4</span>
+          <span class="meta-chip">⚙ Otomasi &amp; Pipeline</span>
+        </div>
+      </section>
+
+      <section id="tujuan">
+        <h2>Tujuan Pembelajaran</h2>
+        <p class="sec-desc">Setelah mengikuti sesi ini, mahasiswa mampu:</p>
+        <div class="card"><ul class="obj-list">
+          <li><span class="check">✓</span> Menentukan test yang layak dan tidak layak diotomasi.</li>
+          <li><span class="check">✓</span> Membandingkan Selenium, Cypress, dan tools sejenis.</li>
+          <li><span class="check">✓</span> Menulis skrip pengujian UI dasar dengan locator dan penantian yang tepat.</li>
+          <li><span class="check">✓</span> Menerapkan Page Object Model dan menghindari flaky test.</li>
+          <li><span class="check">✓</span> Menjelaskan konsep CI/CD dan menyusun pipeline sederhana yang menjalankan test otomatis.</li>
+        </ul></div>
+      </section>
+
+      <section id="otomasi">
+        <div class="eyebrow">11.1</div>
+        <h2>Mengapa Otomasi Pengujian?</h2>
+        <p><b>Test automation</b> adalah penggunaan skrip dan tools untuk mengeksekusi test dan membandingkan hasil aktual dengan hasil yang diharapkan tanpa intervensi manual.</p>
+        <div class="dodont-grid">
+          <div class="dodont-card do"><h4>Layak diotomasi</h4><ul>
+            <li>Regression test yang berulang tiap rilis</li>
+            <li>Smoke test pada jalur kritis (login, checkout)</li>
+            <li>Test dengan banyak kombinasi data</li>
+            <li>Test lintas browser/perangkat</li>
+          </ul></div>
+          <div class="dodont-card dont"><h4>Kurang layak diotomasi</h4><ul>
+            <li>Fitur yang masih sering berubah</li>
+            <li>Exploratory testing dan penilaian kegunaan (usability)</li>
+            <li>Test yang hanya dijalankan sekali</li>
+            <li>Penilaian visual yang subjektif</li>
+          </ul></div>
+        </div>
+        <div class="callout info"><span class="callout-icon">💡</span><span><b>Piramida otomasi:</b> idealnya banyak unit test (sesi 9–10), lebih sedikit test API/integrasi, dan paling sedikit test UI end-to-end. Test UI paling lambat, paling rapuh, dan paling mahal dipelihara, jadi dipakai hanya untuk alur bisnis terpenting.</span></div>
+      </section>
+
+      <section id="tools">
+        <div class="eyebrow">11.2</div>
+        <h2>Peta Tools Otomasi</h2>
+        <div class="card" style="overflow-x:auto;"><table class="trace-table">
+          <tr><th>Aspek</th><th>Selenium</th><th>Cypress</th><th>Playwright</th></tr>
+          <tr><td>Cara kerja</td><td>WebDriver mengendalikan browser dari luar</td><td>Berjalan di dalam browser bersama aplikasi</td><td>Mengendalikan browser lewat protokol langsung</td></tr>
+          <tr><td>Bahasa</td><td>Java, Python, C#, JS, dll.</td><td>JavaScript/TypeScript</td><td>JS/TS, Python, Java, .NET</td></tr>
+          <tr><td>Browser</td><td>Chrome, Firefox, Edge, Safari</td><td>Chrome-family, Firefox, WebKit (eksperimental)</td><td>Chromium, Firefox, WebKit</td></tr>
+          <tr><td>Penantian elemen</td><td>Manual (explicit wait)</td><td>Otomatis (built-in retry)</td><td>Otomatis (auto-wait)</td></tr>
+          <tr><td>Kelebihan</td><td>Paling matang, ekosistem luas</td><td>Debugging visual, setup mudah</td><td>Cepat, multi-tab dan multi-browser</td></tr>
+        </table></div>
+        <p style="font-size:13.5px; color:var(--ink-soft);">Untuk API tersedia Postman/Newman, <code>requests</code> + PyTest, dan REST Assured. Untuk perangkat mobile ada Appium. Pemilihan tools mengikuti bahasa tim, kebutuhan browser, dan sumber daya yang tersedia, bukan sekadar popularitas.</p>
+      </section>
+
+      <section id="selenium">
+        <div class="eyebrow">11.3</div>
+        <h2>Selenium WebDriver</h2>
+        <p>Contoh skenario login memakai Selenium 4 dengan PyTest (kelanjutan sesi 9):</p>
+        <div class="code-block">import pytest
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+@pytest.fixture
+def driver():
+    opts = webdriver.ChromeOptions()
+    opts.add_argument("--headless=new")       <span class="c"># tanpa jendela, cocok untuk CI</span>
+    d = webdriver.Chrome(options=opts)
+    yield d
+    d.quit()                                  <span class="c"># cleanup</span>
+
+def test_login_berhasil(driver):
+    driver.get("https://contoh.app/login")
+    driver.find_element(By.ID, "email").send_keys("a@b.id")
+    driver.find_element(By.ID, "password").send_keys("rahasia123")
+    driver.find_element(By.CSS_SELECTOR, "button[type=submit]").click()
+
+    WebDriverWait(driver, 10).until(EC.url_contains("/dashboard"))   <span class="c"># explicit wait</span>
+    assert "Selamat datang" in driver.page_source</div>
+        <div class="card"><table class="trace-table">
+          <tr><th>Locator</th><th>Keandalan</th><th>Catatan</th></tr>
+          <tr><td>ID / <code>data-testid</code></td><td>Tinggi</td><td>Disarankan; dibuat khusus untuk pengujian</td></tr>
+          <tr><td>CSS selector</td><td>Sedang–tinggi</td><td>Hindari yang bergantung pada struktur DOM dalam</td></tr>
+          <tr><td>XPath panjang</td><td>Rendah</td><td>Rapuh terhadap perubahan tata letak</td></tr>
+          <tr><td>Teks tampilan</td><td>Rendah</td><td>Berubah saat copywriting atau bahasa diganti</td></tr>
+        </table></div>
+      </section>
+
+      <section id="cypress">
+        <div class="eyebrow">11.4</div>
+        <h2>Cypress</h2>
+        <p>Skenario yang sama dalam Cypress. Perhatikan tidak ada penantian eksplisit: Cypress otomatis mengulang pengecekan sampai kondisi terpenuhi atau waktu habis.</p>
+        <div class="code-block">describe("Login", () =&gt; {
+  it("berhasil dengan kredensial valid", () =&gt; {
+    cy.visit("/login");
+    cy.get('[data-testid="email"]').type("a@b.id");
+    cy.get('[data-testid="password"]').type("rahasia123");
+    cy.get("button[type=submit]").click();
+
+    cy.url().should("include", "/dashboard");
+    cy.contains("Selamat datang").should("be.visible");
+  });
+
+  it("menampilkan error untuk password salah", () =&gt; {
+    cy.visit("/login");
+    cy.get('[data-testid="email"]').type("a@b.id");
+    cy.get('[data-testid="password"]').type("salah");
+    cy.get("button[type=submit]").click();
+    cy.get('[data-testid="error"]').should("contain", "tidak valid");
+  });
+});</div>
+        <div class="callout tip"><span class="callout-icon">✓</span><span>Selalu sertakan skenario negatif (password salah, kolom kosong), bukan hanya jalur sukses, sama seperti pada unit test.</span></div>
+      </section>
+
+      <section id="praktik">
+        <div class="eyebrow">11.5</div>
+        <h2>Praktik Terbaik &amp; Flaky Test</h2>
+        <p><b>Flaky test</b> adalah test yang kadang lulus dan kadang gagal pada kode yang sama. Test seperti ini merusak kepercayaan tim terhadap hasil pengujian.</p>
+        <div class="card"><table class="trace-table">
+          <tr><th>Penyebab umum</th><th>Solusi</th></tr>
+          <tr><td>Memakai <code>sleep()</code> dengan waktu tetap</td><td>Gunakan explicit wait / auto-retry berbasis kondisi</td></tr>
+          <tr><td>Test saling bergantung atau berbagi data</td><td>Setiap test menyiapkan dan membersihkan datanya sendiri</td></tr>
+          <tr><td>Locator rapuh</td><td>Gunakan <code>data-testid</code> yang stabil</td></tr>
+          <tr><td>Bergantung pada layanan eksternal</td><td>Stub/mock respons atau pakai lingkungan test khusus</td></tr>
+        </table></div>
+        <h3>Page Object Model (POM)</h3>
+        <p>Pisahkan detail halaman (locator, aksi) dari logika test. Perubahan UI cukup diperbaiki di satu tempat.</p>
+        <div class="code-block">class LoginPage:
+    def __init__(self, driver):
+        self.driver = driver
+
+    def login(self, email, password):
+        self.driver.find_element(By.ID, "email").send_keys(email)
+        self.driver.find_element(By.ID, "password").send_keys(password)
+        self.driver.find_element(By.CSS_SELECTOR, "button[type=submit]").click()
+
+def test_login(driver):
+    driver.get("https://contoh.app/login")
+    LoginPage(driver).login("a@b.id", "rahasia123")   <span class="c"># test tetap ringkas</span></div>
+      </section>
+
+      <section id="api">
+        <div class="eyebrow">11.6</div>
+        <h2>Otomasi Pengujian API</h2>
+        <p>Untuk sistem web service seperti proyek lintas mata kuliah, pengujian otomatis pada level API lebih cepat dan stabil daripada UI. Contoh dengan <code>requests</code> + PyTest:</p>
+        <div class="code-block">import requests
+
+BASE = "https://api.contoh.app"
+
+def test_get_produk_mengembalikan_200_dan_daftar():
+    r = requests.get(f"{BASE}/produk", timeout=10)
+    assert r.status_code == 200
+    assert isinstance(r.json(), list)
+
+def test_endpoint_dilindungi_menolak_tanpa_token():
+    r = requests.get(f"{BASE}/pesanan", timeout=10)
+    assert r.status_code == 401</div>
+        <div class="callout info"><span class="callout-icon">💡</span><span>Pada proyek, kelompok penguji dapat memakai pendekatan ini untuk eksekusi pengujian fungsional dan keamanan dasar, lalu menjalankannya berulang saat retest setelah bug diperbaiki. Spesifikasi OpenAPI dari kelompok pembangun menjadi acuan skenario. Untuk gRPC/GraphQL, tools-nya berbeda (Postman, ghz, k6), tetapi prinsip otomasinya sama.</span></div>
+      </section>
+
+      <section id="cicd">
+        <div class="eyebrow">11.7</div>
+        <h2>Pengenalan CI/CD</h2>
+        <div class="card"><ul class="component-list">
+          <li class="component-item"><span class="component-num">CI</span><div><div class="component-title">Continuous Integration</div><div class="component-desc">Developer sering menggabungkan kode ke repositori bersama; setiap penggabungan memicu build dan test otomatis untuk mendeteksi masalah sedini mungkin.</div></div></li>
+          <li class="component-item"><span class="component-num">CD</span><div><div class="component-title">Continuous Delivery</div><div class="component-desc">Kode yang lolos pipeline selalu siap dirilis; rilis ke produksi tetap lewat persetujuan manual.</div></div></li>
+          <li class="component-item"><span class="component-num">CD</span><div><div class="component-title">Continuous Deployment</div><div class="component-desc">Kode yang lolos seluruh test langsung dirilis ke produksi secara otomatis.</div></div></li>
+        </ul></div>
+        <h3>Tahapan Pipeline &amp; Peran Test</h3>
+        <div class="card"><table class="trace-table">
+          <tr><th>Tahap</th><th>Aktivitas</th><th>Test yang dijalankan</th></tr>
+          <tr><td>1. Commit / Push</td><td>Pemicu pipeline</td><td>–</td></tr>
+          <tr><td>2. Build</td><td>Instal dependensi, kompilasi</td><td>Lint / static analysis</td></tr>
+          <tr><td>3. Test cepat</td><td>Unit test + coverage</td><td>PyTest / JUnit</td></tr>
+          <tr><td>4. Test integrasi</td><td>API &amp; antarservice</td><td>Test API otomatis</td></tr>
+          <tr><td>5. Deploy ke staging</td><td>Rilis ke lingkungan uji</td><td>Smoke test &amp; E2E (Selenium/Cypress)</td></tr>
+          <tr><td>6. Deploy ke produksi</td><td>Rilis (manual/otomatis)</td><td>Smoke test pasca-deploy</td></tr>
+        </table></div>
+        <p>Contoh pipeline sederhana dengan GitHub Actions yang menjalankan PyTest dan menolak perubahan bila coverage di bawah batas:</p>
+        <div class="code-block"><span class="c"># .github/workflows/test.yml</span>
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt pytest pytest-cov
+      - run: pytest --cov=. --cov-branch --cov-fail-under=80</div>
+        <div class="callout warn"><span class="callout-icon">⚠</span><span><b>Quality gate:</b> pipeline harus benar-benar <i>menggagalkan</i> build ketika test gagal atau coverage di bawah ambang. Pipeline yang gagalnya diabaikan sama saja tidak ada. Jangan pula menaruh secret (API key, token) di dalam file workflow; gunakan fitur secrets dari platform CI.</span></div>
+        <p style="font-size:13.5px; color:var(--ink-soft);">Untuk proyek, memasang pipeline seperti ini sebelum code freeze (minggu 12) membantu kelompok pembangun menjaga sistem tetap stabil dan memudahkan retest otomatis pada minggu 14.</p>
+      </section>
+
+      <section id="studikasus">
+        <h2>Latihan Kelas: Merancang Strategi Otomasi</h2>
+        <p class="sec-desc">Kerjakan berkelompok selama 15 menit.</p>
+        <div class="case-card"><span class="case-tag">Latihan</span>
+          <h4 style="margin-top:0;">Otomasi untuk Sistem Proyek Anda</h4>
+          <p>Gunakan topik sistem kelompok Anda (mis. reservasi tiket, marketplace).</p>
+          <ul>
+            <li>Dari 8 skenario berikut, tentukan mana yang diotomasi di level unit, API, atau UI, dan mana yang dibiarkan manual: login valid, login gagal, pencarian produk, booking dua pengguna bersamaan, tampilan di layar kecil, checkout, batas rate limit, kesan estetika halaman.</li>
+            <li>Tulis satu skenario UI dalam format Given–When–Then, lalu ubah menjadi kerangka kode Selenium atau Cypress.</li>
+            <li>Gambarkan pipeline CI untuk repositori Anda: tahap apa saja dan test apa di tiap tahap.</li>
+          </ul>
+          <p class="prompt-q">Jika test E2E Anda gagal satu dari sepuluh kali tanpa perubahan kode, apa langkah diagnosis pertama Anda?</p>
+        </div>
+      </section>
+
+      <section id="rangkuman">
+        <h2>Rangkuman</h2>
+        <ul class="summary-list">
+          <li><span>✓</span> Otomasi paling bernilai untuk regression, smoke test, dan test berulang; tidak semua hal layak diotomasi.</li>
+          <li><span>✓</span> Selenium, Cypress, dan Playwright memiliki pendekatan berbeda; pilih sesuai kebutuhan tim.</li>
+          <li><span>✓</span> Locator stabil, penantian berbasis kondisi, dan Page Object Model mengurangi flaky test.</li>
+          <li><span>✓</span> Test API otomatis lebih cepat dan stabil daripada UI dan cocok untuk sistem web service.</li>
+          <li><span>✓</span> CI/CD menjalankan build dan test otomatis pada setiap perubahan; quality gate menjaga mutu sebelum rilis.</li>
+        </ul>
+      </section>
+
+      <section id="latihan">
+        <h2>Latihan Pemahaman Mandiri</h2>
+        <p class="sec-desc">Klik tiap soal untuk melihat kunci jawaban.</p>
+        <details><summary>1. Mengapa <code>time.sleep(5)</code> bukan solusi yang baik untuk menunggu elemen muncul?</summary>
+          <div class="answer"><b>Jawaban:</b> Waktu tetap bisa terlalu singkat (test gagal saat server lambat) atau terlalu lama (membuang waktu). Penantian berbasis kondisi menunggu hanya sampai elemen siap, dengan batas waktu maksimum.</div></details>
+        <details><summary>2. Apa perbedaan Continuous Delivery dan Continuous Deployment?</summary>
+          <div class="answer"><b>Jawaban:</b> Pada Continuous Delivery, kode yang lolos pipeline siap dirilis tetapi rilis ke produksi menunggu persetujuan manual. Pada Continuous Deployment, rilis ke produksi terjadi otomatis setelah semua test lulus.</div></details>
+        <details><summary>3. Apa manfaat Page Object Model?</summary>
+          <div class="answer"><b>Jawaban:</b> Memusatkan locator dan aksi halaman di satu class sehingga perubahan UI hanya perlu diperbaiki di satu tempat, dan test menjadi lebih ringkas serta mudah dibaca.</div></details>
+        <details><summary>4. Mengapa test UI sebaiknya lebih sedikit daripada unit test?</summary>
+          <div class="answer"><b>Jawaban:</b> Test UI lebih lambat, lebih rapuh terhadap perubahan tampilan, dan lebih mahal dipelihara. Logika bisnis lebih efisien diuji pada level unit dan API, sedangkan UI dibatasi pada alur kritis.</div></details>
+      </section>
+
+      <section id="tugas">
+        <h2>Tugas Sesi 11</h2>
+        <div class="task-card">
+          <h3>Otomasi Test &amp; Pipeline CI</h3>
+          <p>Gunakan repositori GitHub (boleh dari proyek kelompok atau tugas sebelumnya). Kerjakan:</p>
+          <p style="color:#F2F1EA;">(1) Minimal 3 test otomatis level UI (Selenium/Cypress/Playwright) atau level API terhadap aplikasi nyata, termasuk 1 skenario negatif<br>(2) Penerapan <code>data-testid</code>/locator stabil dan penantian berbasis kondisi (tanpa <code>sleep</code> tetap)<br>(3) Satu workflow CI (mis. GitHub Actions) yang menjalankan test dan coverage otomatis pada setiap push<br>(4) Tangkapan layar pipeline yang berhasil, serta satu pipeline yang sengaja digagalkan untuk menunjukkan quality gate bekerja</p>
+          <table class="rubric-table">
+            <tr><th>Kriteria</th><th>Bobot</th></tr>
+            <tr><td>Kualitas dan kebenaran test otomatis</td><td>35%</td></tr>
+            <tr><td>Praktik anti-flaky (locator, wait, POM)</td><td>20%</td></tr>
+            <tr><td>Konfigurasi pipeline CI &amp; quality gate</td><td>30%</td></tr>
+            <tr><td>Bukti eksekusi &amp; analisis singkat</td><td>15%</td></tr>
+          </table>
+          <span class="deadline-tag">⏳ Dikumpulkan sebelum sesi 12</span>
+        </div>
+      </section>
+
+      <section id="referensi">
+        <h2>Referensi Sesi Ini</h2>
+        <div class="card"><ul class="ref-list">
+          <li><b>Selenium Documentation</b> — selenium.dev/documentation.</li>
+          <li><b>Cypress Documentation</b> — docs.cypress.io.</li>
+          <li><b>GitHub Actions Documentation</b> — docs.github.com/actions.</li>
+          <li><b>Humble, J. &amp; Farley, D.</b> — Continuous Delivery, Addison-Wesley.</li>
+          <li><b>Black, R., Graham, D., van Veenendaal, E.</b> — Foundations of Software Testing: ISTQB Certification, bab test automation.</li>
+        </ul></div>
+      </section>
+
+      <div class="nav-next">
+        <a href="sesi10.html">← Sesi 10: Procedural &amp; OO Testing</a>
+        <a class="to-next" href="index.html#silabus">Sesi 12: Performance Testing →</a>
+      </div>
+
+      <footer>
+        <span>Mata Kuliah Software Testing · 3 SKS</span>
+        <span>Dosen Pengampu: Philipus Suryo Subandoro</span>
+      </footer>
+    </div>
+  </main>
+</div>
+</body>
+</html>
